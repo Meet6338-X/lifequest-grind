@@ -8,6 +8,7 @@ let appWin = null;
 let resultsWin = null;
 let playerWin = null;
 let meetWin = null;
+let timerWin = null;
 
 function openAppWindow() {
   if (appWin && !appWin.isDestroyed()) { appWin.focus(); return; }
@@ -91,9 +92,29 @@ function openMeetWindow(url) {
   meetWin.on("closed", () => { meetWin = null; });
 }
 
+/* Timer overlay: big clock fed live from the main window. */
+function openTimerWindow() {
+  if (timerWin && !timerWin.isDestroyed()) { timerWin.focus(); return; }
+  timerWin = new BrowserWindow({
+    width: 380,
+    height: 230,
+    title: "LifeQuest timer",
+    alwaysOnTop: true,
+    autoHideMenuBar: true
+  });
+  timerWin.setMenu(null);
+  timerWin.loadFile(path.join(__dirname, "..", "lifequest-app", "timer.html"));
+  pinOnTop(timerWin);
+  timerWin.on("closed", () => { timerWin = null; });
+}
+
 app.whenReady().then(() => {
   ipcMain.on("open-player", (_e, url) => openPlayerWindow(url));
   ipcMain.on("open-meet", (_e, url) => openMeetWindow(url));
+  ipcMain.on("open-timer", () => openTimerWindow());
+  ipcMain.on("timer-tick", (_e, data) => {
+    if (timerWin && !timerWin.isDestroyed()) timerWin.webContents.send("timer-tick", data);
+  });
   // camera/mic for Meet (and nothing else gets a free pass)
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
     if (permission === "media" && details && details.requestingUrl &&

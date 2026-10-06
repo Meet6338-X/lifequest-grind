@@ -10,7 +10,7 @@
     "test": "node scripts/smoke-test.js",
     "test:results": "node scripts/smoke-results.js",
     "test:all": "node scripts/verify-ids.js && node scripts/smoke-test.js && node scripts/smoke-results.js",
-    "verify:exe": "node --check electron/main.js && node --check electron/preload.js && node -e \"const fs=require('fs');const s=fs.readFileSync('electron/main.js','utf8');for (const k of ['screen-saver','open-meet','open-player','setPermissionRequestHandler']) { if(!s.includes(k)) throw new Error('main.js missing '+k); } console.log('exe wiring ok')\"",
+    "verify:exe": "node --check electron/main.js && node --check electron/preload.js && node -e \"const fs=require('fs');const s=fs.readFileSync('electron/main.js','utf8');for (const k of ['screen-saver','open-meet','open-player','open-timer','timer-tick','setPermissionRequestHandler']) { if(!s.includes(k)) throw new Error('main.js missing '+k); } console.log('exe wiring ok')\"",
     "exe": "electron-packager . LifeQuest --platform=win32 --arch=x64 --out=dist --overwrite --prune=true",
     "exe:run": "electron ."
   },

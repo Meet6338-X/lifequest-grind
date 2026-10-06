@@ -199,6 +199,25 @@ function check(name, fn) {
     return "origin kept on page, dropped in float";
   });
 
+  check("timer pop-out overlay paths", () => {
+    if (!q("timerPopBtn")) throw new Error("missing #timerPopBtn");
+    // exe path: bridge opens the pinned window
+    let opened = false;
+    let ticked = null;
+    window.LQ = { isElectron: true, openTimer: () => { opened = true; }, tickSend: (d) => { ticked = d; } };
+    q("timerPopBtn").dispatchEvent(new window.Event("click", { bubbles: true }));
+    if (!opened) throw new Error("openTimer not called");
+    // live feed carries clock seconds + running flag
+    ev("startTimer(); timer.elapsedMs = 61000; timer.lastTs = Date.now(); tick(); pauseTimer();");
+    if (!ticked || ticked.seconds !== 61 || !ticked.running) throw new Error("bad tick feed: " + JSON.stringify(ticked));
+    delete window.LQ;
+    // music fallbacks still wired
+    if (!q("musicPresetBtn") || !q("musicOpenBtn") || !q("musicDockOpenBtn")) throw new Error("music fallback buttons missing");
+    const preset = ev("Music.PRESET_URL");
+    if (!ev("Music.parse(Music.PRESET_URL).videoId")) throw new Error("preset unparsable: " + preset);
+    return "exe pop + live tick feed ok";
+  });
+
   check("manual time entry 90min", () => {
     ev(`
       document.getElementById("fStart").value = "2026-10-05T10:00";
