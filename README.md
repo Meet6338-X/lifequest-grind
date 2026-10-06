@@ -79,6 +79,17 @@ npx.cmd --yes serve -l 4174 results
 | Data | JSON in localStorage, export/import backup, demo data loader, reset |
 | Daily files | Everyday JSON goes in a `lifequest-data/` folder created in your chosen directory (`lifequest-YYYY-MM-DD.json` + `lifequest-final.json`); folder is remembered, auto-saves daily, downloads as fallback |
 
+## Share it as an .exe (Windows)
+
+```powershell
+npm.cmd run exe
+# → dist\LifeQuest-win32-x64\LifeQuest.exe
+```
+
+Zip that folder and send it to a friend. No install, no server, no internet
+needed except for YouTube music and live stat syncs. Data stays in the app's
+own storage on their machine. `dist/` is git-ignored by design.
+
 ## Free integrations (no API keys)
 
 - **LeetCode** — `alfa-leetcode-api.onrender.com` (profile, solved counts, acceptance)
