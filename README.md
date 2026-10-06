@@ -75,6 +75,7 @@ npx.cmd --yes serve -l 4174 results
 | Layout | Drag any dashboard block to resize it, add/remove blocks, collapsible sidebar (edge-drag to reopen) |
 | Music | YouTube video + playlist support via IFrame API (no key), volume, next |
 | Stats | 7-day chart, category split, coins by category, coin market candles, badges, GitHub totals panel |
+| Results report | Weekly boss status, hall of fame, LeetCode grind, repo totals |
 | Data | JSON in localStorage, export/import backup, demo data loader, reset |
 | Daily files | Everyday JSON goes in a `lifequest-data/` folder created in your chosen directory (`lifequest-YYYY-MM-DD.json` + `lifequest-final.json`); folder is remembered, auto-saves daily, downloads as fallback |
 
