@@ -186,6 +186,18 @@ function check(name, fn) {
     return `${chip} · total ${q("lcTotal").textContent} · acc ${q("lcAcc").textContent}`;
   });
 
+  check("results boss card", () => {
+    const name = q("bossName").textContent;
+    if (!name) throw new Error("boss has no name");
+    return `${name} · ${q("bossHp").textContent} · ${q("bossWeek").textContent.slice(0, 40)}`;
+  });
+
+  check("results hall of fame", () => {
+    const n = q("fameList").children.length;
+    if (n !== 8) throw new Error("rows=" + n);
+    return q("fameList").textContent.slice(0, 50);
+  });
+
   console.log("\n=== RESULTS PAGE SMOKE ===");
   results.forEach((r) => console.log(r));
   console.log("\n=== ERRORS (" + errors.length + ") ===");

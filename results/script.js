@@ -41,6 +41,69 @@ function localISO(date) {
 
 function levelFromXp(xp) { return Math.floor((xp || 0) / 100) + 1; }
 
+/* ---------- weekly boss + hall of fame (same rules as the app) ---------- */
+const BOSS_MAX_HP = 750;
+const BOSS_NAMES = ["Procrastination Imp", "Distraction Goblin", "Scope Creep", "Bug Hydra", "Burnout Dragon", "Deadline Demon"];
+const BOSS_EMOJI = ["👺", "👹", "🌊", "🐲", "🐉", "😈"];
+
+function weekKey(date) {
+  const d = date ? new Date(date) : new Date();
+  const monday = new Date(d);
+  const day = (monday.getDay() + 6) % 7;
+  monday.setDate(monday.getDate() - day);
+  monday.setHours(0, 0, 0, 0);
+  return localISO(monday);
+}
+
+function weekDamage(week) {
+  return data.sessions
+    .filter((x) => { try { return weekKey(new Date(x.endedAt)) === week; } catch (e) { return false; } })
+    .reduce((s, x) => s + (x.coins || 0), 0);
+}
+
+function renderBoss() {
+  const week = weekKey();
+  const damage = weekDamage(week);
+  let n = 0;
+  for (let i = 0; i < week.length; i++) n = (n * 31 + week.charCodeAt(i)) % 997;
+  const i = n % BOSS_NAMES.length;
+  const defeated = damage >= BOSS_MAX_HP;
+  $("bossName").textContent = `${BOSS_EMOJI[i]} ${BOSS_NAMES[i]}`;
+  $("bossHp").textContent = defeated ? "DEFEATED" : `${Math.max(0, BOSS_MAX_HP - damage)} HP`;
+  $("bossBar").style.width = `${Math.min(100, Math.round((damage / BOSS_MAX_HP) * 100))}%`;
+  const claimed = data.bossLoot && data.bossLoot.week === week;
+  $("bossWeek").textContent = defeated
+    ? (claimed ? `Slain with ${damage} damage. Loot claimed.` : `Slain with ${damage} damage. Claim loot in the app.`)
+    : `You dealt ${damage} damage (goal ${BOSS_MAX_HP})`;
+}
+
+function renderFame() {
+  const now = new Date();
+  const seen = {};
+  for (let i = 55; i >= 0; i -= 7) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = weekKey(d);
+    if (!seen[key]) seen[key] = new Date(key + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+  const weeks = Object.entries(seen).map(([key, label]) => {
+    const rows = data.sessions.filter((x) => {
+      try { return weekKey(new Date(x.endedAt)) === key; } catch (e) { return false; }
+    });
+    return {
+      key, label,
+      seconds: rows.reduce((s, x) => s + (x.durationSec || 0), 0),
+      xp: rows.reduce((s, x) => s + (x.xp || 0), 0)
+    };
+  }).sort((a, b) => b.xp - a.xp).slice(0, 8);
+  const medals = ["🥇", "🥈", "🥉"];
+  $("fameList").innerHTML = weeks.map((w, i) => `
+    <div class="fame-row">
+      <span><b>${medals[i] || `#${i + 1}`}</b> <span class="muted small">w/c ${esc(w.label)}</span></span>
+      <span class="stars">${w.xp} XP</span>
+    </div>`).join("");
+}
+
 function humanFocus(totalSeconds) {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
@@ -241,6 +304,7 @@ function normalize(parsed) {
     leetcode: Array.isArray(parsed.leetcode) ? parsed.leetcode : [],
     leetcodeLive: parsed.leetcodeLive || null,
     leetcodeLive2: parsed.leetcodeLive2 || null,
+    bossLoot: parsed.bossLoot || null,
     github: parsed.github || null
   };
 }
@@ -466,6 +530,8 @@ function renderAll() {
   renderLeetCode();
   renderGitHub();
   renderWeekChart();
+  renderBoss();
+  renderFame();
   renderTasks();
   renderStreak();
   renderBadges();
