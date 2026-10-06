@@ -20,6 +20,8 @@ const DEFAULT_STATE = {
     theme: "memphis",
     background: "none",
     bgVeil: 55,
+    panelOpacity: 100,
+    uiScale: 100,
     companion: "dragon",
     companionName: "Ember",
     compSkins: [],
@@ -39,8 +41,7 @@ const DEFAULT_STATE = {
     meetAttach: true,
     sidebar: true,
     cardSizes: {},
-    dashboard: { companion: true, stats: true, market: true, quests: true, sessions: true },
-    panelOpacity: 100,
+    dashboard: { companion: true, stats: true, market: true, quests: true, sessions: true, rooms: true },
     rates: { Coding: 1, LeetCode: 1.5, Work: 0.6, Study: 0.8, Fitness: 0.5, Creative: 0.6, Other: 0.5 }
   },
   sessions: [],

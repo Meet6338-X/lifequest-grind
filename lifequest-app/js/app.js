@@ -810,6 +810,11 @@ function renderSettings() {
   if (pop) pop.value = toNumber(state.settings.panelOpacity, 100);
   applyPanelOpacity();
 
+  // interface size (resize the whole app shell)
+  const uis = document.getElementById("uiScale");
+  if (uis) uis.value = toNumber(state.settings.uiScale, 100);
+  applyUiScale();
+
   renderDashboard();
   renderSidebar();
 
@@ -854,6 +859,50 @@ function applyPanelOpacity() {
   const pct = Math.min(100, Math.max(25, toNumber(state.settings.panelOpacity, 100)));
   document.body.classList.toggle("glass", pct < 100);
   document.documentElement.style.setProperty("--panel-mix", pct + "%");
+}
+
+/* Interface resize: scales the whole app shell (web + exe alike). */
+function applyUiScale() {
+  const pct = Math.min(120, Math.max(80, toNumber(state.settings.uiScale, 100)));
+  const shell = document.querySelector(".app");
+  if (shell) shell.style.zoom = String(pct / 100);
+}
+
+/* Float the tunes over every application: exe pops a system overlay
+   window, browsers use a floating picture-in-picture window. */
+async function floatMusic() {
+  const dock = document.getElementById("musicDock");
+  const urlInput = document.getElementById("musicUrl");
+  const url = (urlInput && urlInput.value.trim()) || state.settings.musicUrl || "";
+  if (window.LQ && window.LQ.isElectron) {
+    if (!url) { UI.toast("Link a YouTube track first, then float it"); return; }
+    window.LQ.openPlayer(url);
+    UI.toast("Tunes popped out over everything");
+    return;
+  }
+  if (window.documentPictureInPicture && dock && !dock.hidden) {
+    try {
+      const home = dock.parentNode;
+      const next = dock.nextSibling;
+      const win = await window.documentPictureInPicture.requestWindow({ width: 360, height: 320 });
+      win.document.title = "Focus tunes";
+      const css = win.document.createElement("style");
+      css.textContent = "body{margin:0;background:#17140d;color:#f5efe2;font-family:sans-serif}" +
+        ".music-dock{position:static !important;width:auto !important;margin:10px}" +
+        ".music-frame{position:relative;width:100%;aspect-ratio:16/9;background:#000}" +
+        ".music-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}" +
+        ".row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}" +
+        ".btn{border:2px solid #f5efe2;border-radius:10px;background:#12b3a4;color:#fff;padding:8px 12px;font-weight:800;cursor:pointer}";
+      win.document.head.appendChild(css);
+      win.document.body.appendChild(dock);
+      win.addEventListener("pagehide", () => {
+        if (home) home.insertBefore(dock, next);
+      });
+      UI.toast("Floating over other apps (player restarts)");
+      return;
+    } catch (e) { /* fall through to the hint */ }
+  }
+  UI.toast("System overlay lives in the LifeQuest exe (or Chrome PiP)");
 }
 
 function hexToRgb(hex) {
@@ -1413,6 +1462,11 @@ function bindEvents() {
   document.getElementById("panelOpacity").addEventListener("input", (e) => {
     state.settings.panelOpacity = toNumber(e.target.value, 100);
     applyPanelOpacity();
+    saveState();
+  });
+  document.getElementById("uiScale").addEventListener("input", (e) => {
+    state.settings.uiScale = toNumber(e.target.value, 100);
+    applyUiScale();
     saveState();
   });
 

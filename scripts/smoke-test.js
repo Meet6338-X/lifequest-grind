@@ -419,6 +419,31 @@ function check(name, fn) {
     return "everyday files go to " + sub + "/";
   });
 
+  check("interface resize slider scales app", () => {
+    if (!q("uiScale")) throw new Error("missing #uiScale");
+    ev("state.settings.uiScale = 110; renderSettings();");
+    const zoom = doc.querySelector(".app").style.zoom;
+    if (zoom !== "1.1") throw new Error("zoom=" + zoom);
+    ev("state.settings.uiScale = 100; renderSettings();");
+    return "110% applied · back to 100%";
+  });
+
+  check("float button falls back gracefully", () => {
+    if (!q("musicFloatBtn")) throw new Error("missing #musicFloatBtn");
+    q("musicFloatBtn").dispatchEvent(new window.Event("click", { bubbles: true }));
+    if (!doc.body.contains(q("musicDock"))) throw new Error("dock lost from document");
+    return "no crash, dock stays put";
+  });
+
+  await check("overlay music page served", async () => {
+    const base = window.location.href.replace(/\/?$/, "/");
+    const res = await fetch(base + "music.html");
+    if (res.status !== 200) throw new Error("status=" + res.status);
+    const text = await res.text();
+    if (!text.includes("youtube.com/embed")) throw new Error("no embed builder");
+    return "music.html 200 with embed builder";
+  });
+
   check("money shop buy + boost scales rewards", () => {
     ["shopBalance", "shopList"].forEach((id) => {
       if (!q(id)) throw new Error("missing #" + id);

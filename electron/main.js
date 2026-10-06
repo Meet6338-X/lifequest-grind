@@ -1,11 +1,12 @@
 /* LifeQuest desktop shell (Electron). Free, offline-first:
    the app and results pages load from local files, all data
    stays in the app's own storage on this machine. */
-const { app, BrowserWindow, Menu } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain } = require("electron");
 const path = require("path");
 
 let appWin = null;
 let resultsWin = null;
+let playerWin = null;
 
 function openAppWindow() {
   if (appWin && !appWin.isDestroyed()) { appWin.focus(); return; }
@@ -13,7 +14,8 @@ function openAppWindow() {
     width: 1320,
     height: 900,
     title: "LifeQuest",
-    autoHideMenuBar: false
+    autoHideMenuBar: false,
+    webPreferences: { preload: path.join(__dirname, "preload.js") }
   });
   appWin.loadFile(path.join(__dirname, "..", "lifequest-app", "index.html"));
   appWin.on("closed", () => { appWin = null; });
@@ -31,7 +33,32 @@ function openResultsWindow() {
   resultsWin.on("closed", () => { resultsWin = null; });
 }
 
+/* System overlay player: small, resizable, always on top of every app. */
+function playerTarget() {
+  return path.join(__dirname, "..", "lifequest-app", "music.html");
+}
+
+function openPlayerWindow(url) {
+  const hash = "u=" + encodeURIComponent(url || "");
+  if (playerWin && !playerWin.isDestroyed()) {
+    playerWin.loadFile(playerTarget(), { hash });
+    playerWin.focus();
+    return;
+  }
+  playerWin = new BrowserWindow({
+    width: 400,
+    height: 330,
+    title: "Focus tunes",
+    alwaysOnTop: true,
+    autoHideMenuBar: true
+  });
+  playerWin.setMenu(null);
+  playerWin.loadFile(playerTarget(), { hash: "u=" + encodeURIComponent(url || "") });
+  playerWin.on("closed", () => { playerWin = null; });
+}
+
 app.whenReady().then(() => {
+  ipcMain.on("open-player", (_e, url) => openPlayerWindow(url));
   const menu = Menu.buildFromTemplate([
     {
       label: "LifeQuest",
@@ -41,6 +68,17 @@ app.whenReady().then(() => {
         { type: "separator" },
         { role: "reload" },
         { role: "quit" }
+      ]
+    },
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "togglefullscreen" },
+        { type: "separator" },
+        { role: "zoomIn", label: "Bigger interface" },
+        { role: "zoomOut", label: "Smaller interface" },
+        { role: "resetZoom", label: "Actual size" }
       ]
     }
   ]);

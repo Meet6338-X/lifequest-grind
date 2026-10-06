@@ -144,6 +144,7 @@ const Music = {
     const play = document.getElementById("musicPlay");
     const next = document.getElementById("musicNext");
     const close = document.getElementById("musicClose");
+    const float = document.getElementById("musicFloatBtn");
     const load = document.getElementById("musicLoadBtn");
     const vol = document.getElementById("musicVolume");
     const urlInput = document.getElementById("musicUrl");
@@ -151,6 +152,9 @@ const Music = {
     if (play) play.addEventListener("click", () => this.playPause());
     if (next) next.addEventListener("click", () => this.next());
     if (close) close.addEventListener("click", () => this.close());
+    if (float) float.addEventListener("click", () => {
+      if (typeof floatMusic === "function") floatMusic();
+    });
     if (load) {
       load.addEventListener("click", () => {
         const url = (urlInput && urlInput.value) || state.settings.musicUrl;
