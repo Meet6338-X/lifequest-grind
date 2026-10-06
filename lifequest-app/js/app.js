@@ -801,6 +801,7 @@ function renderAll() {
   applyStyles();
   renderStyles();
   renderBoss();
+  renderFame();
   if (typeof Companion !== "undefined" && Companion && typeof Companion.renderStore === "function") {
     try { Companion.renderStore(); } catch (e) { /* store never breaks render */ }
   }
@@ -1022,6 +1023,47 @@ function renderBoss() {
     btn.disabled = !st.defeated || !!st.claimed;
     btn.textContent = st.claimed ? "Loot claimed" : st.defeated ? "Claim loot" : "Not defeated yet";
   }
+}
+
+/* ---------- hall of fame: your own weeks, ranked ---------- */
+function lastNWeeks(n) {
+  const weeks = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i * 7);
+    const key = weekKey(d);
+    const label = new Date(key + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (!weeks.some((w) => w.key === key)) weeks.push({ key, label });
+  }
+  return weeks;
+}
+
+function focusByWeek(weeks) {
+  return weeks.map((w) => {
+    const rows = state.sessions.filter((s) => {
+      try { return weekKey(new Date(s.endedAt)) === w.key; } catch (e) { return false; }
+    });
+    return {
+      ...w,
+      seconds: rows.reduce((sum, s) => sum + (s.durationSec || 0), 0),
+      coins: rows.reduce((sum, s) => sum + (s.coins || 0), 0),
+      xp: rows.reduce((sum, s) => sum + (s.xp || 0), 0)
+    };
+  });
+}
+
+function renderFame() {
+  const el = document.getElementById("fameList");
+  if (!el) return;
+  const weeks = focusByWeek(lastNWeeks(8)).sort((a, b) => b.xp - a.xp);
+  const medals = ["🥇", "🥈", "🥉"];
+  el.innerHTML = weeks.map((w, i) => `
+    <div class="task">
+      <span class="strong">${medals[i] || `#${i + 1}`} <span class="muted small">w/c ${UI.esc(w.label)}</span></span>
+      <span class="session-meta">${Math.round(w.seconds / 3600 * 10) / 10}h focus</span>
+      <span class="reward-pill">${w.xp} XP</span>
+    </div>`).join("");
 }
 
 /* ---------- events ---------- */
