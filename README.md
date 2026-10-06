@@ -72,7 +72,8 @@ npx.cmd --yes serve -l 4174 results
 | Study rooms | Friend list, room codes, shared coin goals, leaderboard via exported progress files, Google Meet links that attach to sessions |
 | Themes | Memphis cream (default), dark glass, cyber, forest, light |
 | Backgrounds | 9 options: none + 8 bundled 4K anime scenes, custom URL, adjustable veil, panel transparency slider |
-| Layout | Drag any dashboard block to resize it, add/remove blocks, collapsible sidebar (edge-drag to reopen) |
+| Layout | Drag any dashboard block to resize it, add/remove blocks, collapsible sidebar (edge-drag to reopen), interface size slider |
+| Music | YouTube tunes dock with float-over-apps overlay (exe always-on-top window, browser PiP) |
 | Music | YouTube video + playlist support via IFrame API (no key), volume, next |
 | Stats | 7-day chart, category split, coins by category, coin market candles, badges, GitHub totals panel |
 | Results report | Weekly boss status, hall of fame, LeetCode grind, repo totals |
@@ -89,6 +90,14 @@ npm.cmd run exe
 Zip that folder and send it to a friend. No install, no server, no internet
 needed except for YouTube music and live stat syncs. Data stays in the app's
 own storage on their machine. `dist/` is git-ignored by design.
+
+The exe also unlocks two things the browser cannot do:
+
+- **System overlay tunes** — the ⧉ button pops Focus tunes into a small
+  always-on-top window that floats over every application (resizable, like any
+  window). On the web the same button uses a floating window where supported.
+- **Window zoom menu** — View → Bigger/Smaller/Actual size plus fullscreen.
+  The in-app Interface size slider (Settings → Theme) works in both.
 
 ## Free integrations (no API keys)
 

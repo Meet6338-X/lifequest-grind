@@ -10,6 +10,7 @@
     "test": "node scripts/smoke-test.js",
     "test:results": "node scripts/smoke-results.js",
     "test:all": "node scripts/verify-ids.js && node scripts/smoke-test.js && node scripts/smoke-results.js",
+    "verify:exe": "node --check electron/main.js && node --check electron/preload.js",
     "exe": "electron-packager . LifeQuest --platform=win32 --arch=x64 --out=dist --overwrite --prune=true",
     "exe:run": "electron ."
   },
