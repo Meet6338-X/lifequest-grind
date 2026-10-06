@@ -399,7 +399,7 @@ function check(name, fn) {
   });
 
   check("meet link normalize + attach", () => {
-    ["meetUrl", "meetNewBtn", "meetJoinBtn", "meetCopyBtn", "meetAttach", "meetStatus"].forEach((id) => {
+    ["meetUrl", "meetNewBtn", "meetJoinBtn", "meetPopBtn", "meetCopyBtn", "meetAttach", "meetStatus"].forEach((id) => {
       if (!q(id)) throw new Error("missing #" + id);
     });
     const good = ev("Rooms.normalizeMeet('abc-defg-hij')");
@@ -411,6 +411,22 @@ function check(name, fn) {
     const linked = ev("state.currentMeet");
     if (linked !== "https://meet.google.com/abc-defg-hij") throw new Error(linked);
     return "linked " + linked;
+  });
+
+  check("meet pop-out overlay paths", () => {
+    // exe path: bridge receives the linked call URL
+    let sent = null;
+    window.LQ = { isElectron: true, openMeet: (u) => { sent = u; } };
+    q("meetPopBtn").dispatchEvent(new window.Event("click", { bubbles: true }));
+    if (sent !== "https://meet.google.com/abc-defg-hij") throw new Error("bridge got " + sent);
+    // web path: compact popup window instead
+    delete window.LQ;
+    let opened = null;
+    window.open = (url, name, feats) => { opened = { url, name, feats }; return {}; };
+    q("meetPopBtn").dispatchEvent(new window.Event("click", { bubbles: true }));
+    if (!opened || !opened.url.includes("meet.google.com")) throw new Error("popup not opened");
+    if (!opened.feats.includes("520")) throw new Error("popup not compact: " + opened.feats);
+    return "exe bridge + web popup ok";
   });
 
   check("daily folder remembers subdir", () => {

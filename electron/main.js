@@ -1,12 +1,13 @@
 /* LifeQuest desktop shell (Electron). Free, offline-first:
    the app and results pages load from local files, all data
    stays in the app's own storage on this machine. */
-const { app, BrowserWindow, Menu, ipcMain } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain, session } = require("electron");
 const path = require("path");
 
 let appWin = null;
 let resultsWin = null;
 let playerWin = null;
+let meetWin = null;
 
 function openAppWindow() {
   if (appWin && !appWin.isDestroyed()) { appWin.focus(); return; }
@@ -57,8 +58,42 @@ function openPlayerWindow(url) {
   playerWin.on("closed", () => { playerWin = null; });
 }
 
+/* Meet overlay: the live call in a small always-on-top window.
+   Meet blocks iframes, so this loads the real call page (camera/mic
+   granted below). Log in with Google once; it persists in the app. */
+function openMeetWindow(url) {
+  if (!/^https:\/\/meet\.google\.com\//.test(url || "")) return;
+  if (meetWin && !meetWin.isDestroyed()) {
+    meetWin.loadURL(url);
+    meetWin.focus();
+    return;
+  }
+  meetWin = new BrowserWindow({
+    width: 520,
+    height: 400,
+    title: "Study Meet",
+    alwaysOnTop: true,
+    autoHideMenuBar: true
+  });
+  meetWin.setMenu(null);
+  meetWin.loadURL(url);
+  meetWin.on("closed", () => { meetWin = null; });
+}
+
 app.whenReady().then(() => {
   ipcMain.on("open-player", (_e, url) => openPlayerWindow(url));
+  ipcMain.on("open-meet", (_e, url) => openMeetWindow(url));
+  // camera/mic for Meet (and nothing else gets a free pass)
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    if (permission === "media" && details && details.requestingUrl &&
+        details.requestingUrl.startsWith("https://meet.google.com/")) {
+      callback(true);
+    } else if (permission === "notifications") {
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
   const menu = Menu.buildFromTemplate([
     {
       label: "LifeQuest",
