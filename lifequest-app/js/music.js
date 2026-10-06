@@ -8,6 +8,9 @@ const Music = {
   player: null,
   ready: false,
   apiLoading: false,
+  // Embedding-friendly fallback station. Some uploads block embedding
+  // (owner setting) and no code can override that — this one allows it.
+  PRESET_URL: "https://www.youtube.com/watch?v=jfKfPfyJRdk",
 
   ensureApi() {
     if (window.YT && window.YT.Player) return Promise.resolve(true);
@@ -94,16 +97,22 @@ const Music = {
         playerVars: { ...vars, list: parsed.listId, listType: parsed.listId && !parsed.videoId ? "playlist" : undefined },
         events: {
           onReady: () => { this.ready = true; resolve(true); },
-          // error 101/150/158 (embedding blocked, bad config…):
+          // error 101/150 (embedding blocked by owner), 158 (bad config):
           // fall back to a plain embed instead of dying
-          onError: () => resolve(false)
+          onError: (e) => {
+            const code = e && e.data;
+            if ((code === 101 || code === 150) && window.UI) {
+              UI.toast("Owner blocks embedding this video. Try Focus radio or Open on YouTube.");
+            }
+            resolve(false);
+          }
         }
       });
     });
 
     const done = await mount();
     if (!done) {
-      if (window.UI) UI.toast("API player refused it (code 158?). Trying plain player…");
+      if (window.UI) UI.toast("API player refused it. Trying plain player…");
       return this.mountPlain(parsed, url);
     }
     if (done) {
@@ -214,6 +223,16 @@ const Music = {
     this.ready = false;
   },
 
+  openOnYouTube() {
+    const url = (document.getElementById("musicUrl") || {}).value || state.settings.musicUrl || "";
+    if (!url) {
+      if (window.UI) UI.toast("No track to open yet");
+      return false;
+    }
+    window.open(url, "_blank", "noopener");
+    return true;
+  },
+
   bind() {
     const play = document.getElementById("musicPlay");
     const next = document.getElementById("musicNext");
@@ -229,6 +248,16 @@ const Music = {
     if (float) float.addEventListener("click", () => {
       if (typeof floatMusic === "function") floatMusic();
     });
+    const preset = document.getElementById("musicPresetBtn");
+    if (preset) preset.addEventListener("click", () => {
+      const inp = document.getElementById("musicUrl");
+      if (inp) inp.value = Music.PRESET_URL;
+      this.load(Music.PRESET_URL);
+    });
+    const openBtn = document.getElementById("musicOpenBtn");
+    if (openBtn) openBtn.addEventListener("click", () => this.openOnYouTube());
+    const dockOpen = document.getElementById("musicDockOpenBtn");
+    if (dockOpen) dockOpen.addEventListener("click", () => this.openOnYouTube());
     if (load) {
       load.addEventListener("click", () => {
         const url = (urlInput && urlInput.value) || state.settings.musicUrl;

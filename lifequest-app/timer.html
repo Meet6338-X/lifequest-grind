@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LifeQuest timer</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: "Bricolage Grotesque", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+      background: #17140d; color: #f5efe2;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; user-select: none;
+    }
+    .clock { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+    .clock.running { color: #12b3a4; }
+    .sub { font-size: 13px; color: #b9b2a4; font-weight: 700; }
+    .earn {
+      margin-top: 4px; background: #ffc531; color: #17140d;
+      border-radius: 999px; padding: 5px 14px;
+      font-weight: 800; font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock" id="clock">00:00:00</div>
+  <div class="sub" id="status">Idle</div>
+  <div class="earn" id="earn" hidden>+0 coins</div>
+  <script>
+    // Live updates arrive from the main window over the exe bridge.
+    function fmt(totalSeconds) {
+      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+      const s = String(Math.floor(totalSeconds % 60)).padStart(2, "0");
+      return `${h}:${m}:${s}`;
+    }
+    (function boot() {
+      const clock = document.getElementById("clock");
+      const status = document.getElementById("status");
+      const earn = document.getElementById("earn");
+      function apply(d) {
+        if (!d) return;
+        clock.textContent = fmt(d.seconds || 0);
+        clock.classList.toggle("running", !!d.running);
+        status.textContent = d.running ? (d.label || "Tracking") : "Paused";
+        if (d.running && d.coins != null) {
+          earn.hidden = false;
+          earn.textContent = `+${d.coins} coins so far`;
+        } else {
+          earn.hidden = true;
+        }
+      }
+      if (window.LQ && typeof window.LQ.onTick === "function") {
+        window.LQ.onTick(apply);
+      } else {
+        status.textContent = "Open from the LifeQuest exe";
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -5,5 +5,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("LQ", {
   isElectron: true,
   openPlayer: (url) => ipcRenderer.send("open-player", String(url || "")),
-  openMeet: (url) => ipcRenderer.send("open-meet", String(url || ""))
+  openMeet: (url) => ipcRenderer.send("open-meet", String(url || "")),
+  openTimer: () => ipcRenderer.send("open-timer"),
+  tickSend: (data) => ipcRenderer.send("timer-tick", data || {}),
+  onTick: (cb) => ipcRenderer.on("timer-tick", (_e, data) => cb(data))
 });

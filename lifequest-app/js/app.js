@@ -160,6 +160,56 @@ function tick() {
   timer.lastTs = now;
   renderTime();
   pomoTick();
+  // feed the exe timer overlay (cheap post, guarded)
+  if (window.LQ && window.LQ.isElectron && typeof window.LQ.tickSend === "function") {
+    try {
+      const session = readSessionForm();
+      const r = calculateReward(session, Math.floor(timer.elapsedMs / 1000));
+      window.LQ.tickSend({ seconds: Math.floor(timer.elapsedMs / 1000), running: true, coins: r.coins, label: "Tracking" });
+    } catch (e) { /* overlay optional */ }
+  }
+}
+
+/* Pop the master timer into an overlay: exe gets the pinned timer
+   window, browsers get a live floating window updated from here. */
+async function popTimer() {
+  if (window.LQ && window.LQ.isElectron && typeof window.LQ.openTimer === "function") {
+    window.LQ.openTimer();
+    try {
+      window.LQ.tickSend({ seconds: Math.floor(timer.elapsedMs / 1000), running: timer.running, coins: 0, label: timer.running ? "Tracking" : "Idle" });
+    } catch (e) { /* ignore */ }
+    UI.toast("Timer popped out over everything");
+    return;
+  }
+  if (window.documentPictureInPicture) {
+    try {
+      const win = await window.documentPictureInPicture.requestWindow({ width: 340, height: 200 });
+      win.document.title = "LifeQuest timer";
+      const css = win.document.createElement("style");
+      css.textContent = "body{margin:0;background:#17140d;color:#f5efe2;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}" +
+        ".t{font-size:56px;font-weight:800;font-variant-numeric:tabular-nums}" +
+        ".s{font-size:13px;color:#b9b2a4;font-weight:700}";
+      win.document.head.appendChild(css);
+      const t = win.document.createElement("div");
+      t.className = "t";
+      const s = win.document.createElement("div");
+      s.className = "s";
+      win.document.body.append(t, s);
+      const iv = setInterval(() => {
+        if (win.closed) { clearInterval(iv); return; }
+        t.textContent = formatClock(Math.floor(timer.elapsedMs / 1000));
+        s.textContent = timer.running ? "Tracking — switch back to finish + earn" : "Paused";
+      }, 500);
+      t.textContent = formatClock(Math.floor(timer.elapsedMs / 1000));
+      win.addEventListener("pagehide", () => clearInterval(iv));
+      UI.toast("Timer floating over other apps");
+      return;
+    } catch (e) {
+      UI.toast("Timer float failed (" + (e && e.message ? e.message : e) + "). The exe overlay always works.");
+      return;
+    }
+  }
+  UI.toast("Timer overlay lives in the LifeQuest exe (or Chrome PiP)");
 }
 
 function setTimerUi(running) {
@@ -1233,6 +1283,7 @@ function bindEvents() {
   document.getElementById("pomoBtn").addEventListener("click", () => {
     Pomo.on ? stopPomo() : startPomo();
   });
+  document.getElementById("timerPopBtn").addEventListener("click", popTimer);
   document.getElementById("manualLogBtn").addEventListener("click", logManualSession);
   document.getElementById("sessionForm").addEventListener("submit", (e) => e.preventDefault());
 

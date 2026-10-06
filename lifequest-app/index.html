@@ -86,6 +86,7 @@
               <h2>Master Timer</h2>
               <div class="row">
                 <span class="chip chip-teal" id="timerState">Idle</span>
+                <button type="button" class="btn btn-ghost btn-sm" id="timerPopBtn" title="Pop the timer into an overlay">⧉ Pop</button>
                 <button type="button" class="btn btn-ghost btn-sm" id="detailsBtn">✎ Session details</button>
               </div>
             </div>
@@ -477,6 +478,10 @@
               <input id="musicVolume" type="range" min="0" max="100" value="55" />
               <button class="btn btn-coral btn-sm" id="musicLoadBtn">Load player</button>
             </div>
+            <div class="row" style="margin-top:10px">
+              <button class="btn btn-ghost btn-sm" id="musicPresetBtn" type="button" title="Lofi Girl live — embedding-friendly focus stream">Focus radio</button>
+              <button class="btn btn-ghost btn-sm" id="musicOpenBtn" type="button" title="Open the track on YouTube">Open on YouTube</button>
+            </div>
             <div id="musicDockNote" class="muted small" style="margin-top:8px">Player appears bottom right once loaded.</div>
           </article>
 
@@ -616,6 +621,7 @@
       <span class="music-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <span class="small strong">Focus tunes</span>
       <button class="icon-btn" id="musicFloatBtn" title="Float over other apps">⧉</button>
+      <button class="icon-btn" id="musicDockOpenBtn" title="Open on YouTube">↗</button>
       <button class="icon-btn" id="musicClose" title="Close player">✕</button>
     </div>
     <div class="music-frame" id="musicFrame"></div>

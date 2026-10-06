@@ -7,6 +7,11 @@ literally flies when it levels up far enough.
 
 Everything is **free** and **local-first**: no accounts, no paid APIs, no build step.
 
+## Screenshots
+
+![Dashboard with floating Focus tunes](docs/screenshots/dashboard.png)
+![Settings with glass panels](docs/screenshots/settings.png)
+
 ## Repo layout
 
 ```text
@@ -57,7 +62,7 @@ npx.cmd --yes serve -l 4174 results
 
 | Area | Details |
 |---|---|
-| Master timer | Big centered clock, start / pause / resume / finish, live coin counter, manual start-end entry |
+| Master timer | Big centered clock, start / pause / resume / finish, live coin counter, manual start-end entry, timer pop-out overlay |
 | Session details | Expanded form lives in a modal (Session details button), main screen stays clean and shareable |
 | Coin market | Green/red candlestick chart from real session coins, live last candle, on dashboard and stats |
 | Quests | Priorities, one-tap complete, coins per quest, daily bonus meter |
@@ -73,7 +78,7 @@ npx.cmd --yes serve -l 4174 results
 | Themes | Memphis cream (default), dark glass, cyber, forest, light |
 | Backgrounds | 9 options: none + 8 bundled 4K anime scenes, custom URL, adjustable veil, panel transparency slider |
 | Layout | Drag any dashboard block to resize it, add/remove blocks, collapsible sidebar (edge-drag to reopen), interface size slider |
-| Music | YouTube tunes dock with float-over-apps overlay (exe always-on-top window, browser PiP) |
+| Music | YouTube tunes dock with float-over-apps overlay (exe always-on-top window, browser PiP), Focus radio preset, Open-on-YouTube fallback |
 | Music | YouTube video + playlist support via IFrame API (no key), volume, next |
 | Stats | 7-day chart, category split, coins by category, coin market candles, badges, GitHub totals panel |
 | Results report | Weekly boss status, hall of fame, LeetCode grind, repo totals |
