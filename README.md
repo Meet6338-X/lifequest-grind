@@ -9,8 +9,9 @@ Everything is **free** and **local-first**: no accounts, no paid APIs, no build 
 
 ## Screenshots
 
-![Dashboard with floating Focus tunes](docs/screenshots/dashboard.png)
+![Dashboard](docs/screenshots/dashboard.png)
 ![Settings with glass panels](docs/screenshots/settings.png)
+![Dashboard with background and floating tunes](docs/screenshots/dashboard-glass.png)
 
 ## Repo layout
 

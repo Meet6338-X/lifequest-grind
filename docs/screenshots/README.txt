@@ -1,5 +1,4 @@
-Drop the two screenshots here as:
-- settings.png (Settings view with glass panels)
-- dashboard.png (dashboard with floating Focus tunes)
-
-They are referenced from README.md.
+Screenshots shown in README.md:
+- dashboard.png (dashboard, Memphis theme)
+- settings.png (settings with glass panels over night-city background)
+- dashboard-glass.png (dashboard with background, coin market and floating tunes)
