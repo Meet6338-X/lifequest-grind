@@ -2,13 +2,20 @@
   "name": "lifequest-grind",
   "version": "1.0.0",
   "description": "LifeQuest — gamified activity tracker, second brain and focus dashboard (local-first, free)",
+  "main": "electron/main.js",
   "scripts": {
     "app": "npx.cmd --yes serve -l 4173 lifequest-app",
     "results": "npx.cmd --yes serve -l 4174 results",
     "verify": "node scripts/verify-ids.js",
     "test": "node scripts/smoke-test.js",
     "test:results": "node scripts/smoke-results.js",
-    "test:all": "node scripts/verify-ids.js && node scripts/smoke-test.js && node scripts/smoke-results.js"
+    "test:all": "node scripts/verify-ids.js && node scripts/smoke-test.js && node scripts/smoke-results.js",
+    "exe": "electron-packager . LifeQuest --platform=win32 --arch=x64 --out=dist --overwrite --prune=true",
+    "exe:run": "electron ."
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-packager": "^17.1.2"
+  }
 }
