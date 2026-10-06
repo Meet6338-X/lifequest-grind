@@ -798,6 +798,9 @@ function renderAll() {
     try { Rooms.render(); } catch (e) { /* rooms never break render */ }
   }
   renderShop();
+  if (typeof Companion !== "undefined" && Companion && typeof Companion.renderStore === "function") {
+    try { Companion.renderStore(); } catch (e) { /* store never breaks render */ }
+  }
   if (typeof Market !== "undefined" && Market && typeof Market.render === "function") {
     try { Market.render(); } catch (e) { /* chart never breaks render */ }
   }
@@ -942,6 +945,8 @@ function bindEvents() {
   document.body.addEventListener("click", (e) => {
     const shop = e.target.closest("[data-shop-buy]");
     if (shop) { buyShop(shop.dataset.shopBuy); return; }
+    const skin = e.target.closest("[data-skin]");
+    if (skin) { Companion.buySkin(skin.dataset.skin); Companion.renderStore(); return; }
     const tgl = e.target.closest("[data-task-toggle]");
     if (tgl) return toggleTask(tgl.dataset.taskToggle);
     const del = e.target.closest("[data-task-del]");
@@ -1305,6 +1310,10 @@ function bindEvents() {
     Companion.render();
     Companion.react("level");
     UI.toast("Companion updated");
+  });
+  document.getElementById("feedBtn").addEventListener("click", () => {
+    Companion.feed();
+    Companion.renderStore();
   });
 
   // music

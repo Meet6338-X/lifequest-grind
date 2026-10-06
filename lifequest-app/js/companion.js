@@ -17,6 +17,22 @@ const COMPANION_EMOJI = {
   robot: ["📦", "🤖", "🦾", "🧠", "🚀"]
 };
 
+/* Paid skins: pure cosmetics, bought with Money in the companion store.
+   A selected skin overrides the stage emoji for its type. */
+const COMPANION_SKINS = [
+  { key: "frost-dragon", type: "dragon", name: "Frost", emoji: "🐲", cost: 200 },
+  { key: "rex-dragon", type: "dragon", name: "Rex", emoji: "🦖", cost: 300 },
+  { key: "cactus", type: "plant", name: "Cactus", emoji: "🌵", cost: 150 },
+  { key: "sunflower", type: "plant", name: "Sunflower", emoji: "🌻", cost: 300 },
+  { key: "fox", type: "animal", name: "Fox", emoji: "🦊", cost: 200 },
+  { key: "panda", type: "animal", name: "Panda", emoji: "🐼", cost: 350 },
+  { key: "invader", type: "robot", name: "Invader", emoji: "👾", cost: 200 },
+  { key: "saucer", type: "robot", name: "Saucer", emoji: "🛸", cost: 350 }
+];
+
+const SNACK_COST = 30;
+const SNACK_XP = 8;
+
 const COMPANION_LINES = {
   start: ["Let's go!", "Focus time!", "I believe in you!", "Grind mode: on"],
   finish: ["Nice work!", "Coins incoming!", "That counted!", "Level up energy!"],
@@ -81,7 +97,11 @@ const Companion = {
     const level = levelFromXp(state.profile.xp);
     const idx = companionStageIndex(level);
     const stages = COMPANION_STAGES[type] || COMPANION_STAGES.plant;
-    const emoji = (COMPANION_EMOJI[type] || COMPANION_EMOJI.plant)[idx];
+    const stageEmoji = (COMPANION_EMOJI[type] || COMPANION_EMOJI.plant)[idx];
+    // owned skin overrides the stage look for its type
+    const skinKey = state.settings.compSkin;
+    const skin = COMPANION_SKINS.find((s) => s.key === skinKey && s.type === type);
+    const emoji = skin ? skin.emoji : stageEmoji;
     const flying = companionIsFlying(type, idx);
 
     const creature = document.getElementById("creature");
@@ -176,6 +196,63 @@ const Companion = {
         }
       } catch (e) { /* habitat never breaks the app */ }
     }, 1000);
+  },
+
+  feed() {
+    if (state.profile.coins < SNACK_COST) {
+      this.say(`Snack costs ${SNACK_COST} coins!`);
+      return false;
+    }
+    state.profile.coins -= SNACK_COST;
+    addReward(0, SNACK_XP);
+    this.say(`Yum! +${SNACK_XP} XP`);
+    this.react("finish");
+    renderAll();
+    return true;
+  },
+
+  buySkin(key) {
+    const skin = COMPANION_SKINS.find((s) => s.key === key);
+    if (!skin) return false;
+    if (!state.settings.compSkins) state.settings.compSkins = [];
+    if (state.settings.compSkins.includes(key)) {
+      state.settings.compSkin = key;
+      saveState();
+      this.render();
+      return true;
+    }
+    if (state.profile.coins < skin.cost) {
+      this.say(`Need ${skin.cost} coins for ${skin.name}!`);
+      return false;
+    }
+    state.profile.coins -= skin.cost;
+    state.settings.compSkins.push(key);
+    state.settings.compSkin = key;
+    saveState();
+    this.render();
+    this.react("level");
+    return true;
+  },
+
+  renderStore() {
+    const bal = document.getElementById("storeBalance");
+    if (bal) bal.textContent = `${state.profile.coins} coins`;
+    const box = document.getElementById("storeSkins");
+    if (!box) return;
+    if (!state.settings.compSkins) state.settings.compSkins = [];
+    const type = state.settings.companion;
+    const skins = COMPANION_SKINS.filter((s) => s.type === type);
+    const esc = (window.UI && UI.esc) || ((v) => String(v ?? ""));
+    box.innerHTML = skins.map((s) => {
+      const owned = state.settings.compSkins.includes(s.key);
+      const active = state.settings.compSkin === s.key;
+      const label = active ? "Wearing" : owned ? "Wear" : `Buy · ${s.cost}`;
+      return `
+        <button class="chip chip-btn ${active ? "active" : ""}" data-skin="${s.key}"
+          ${!owned && state.profile.coins < s.cost ? "disabled" : ""}>
+          ${s.emoji} ${esc(s.name)} · ${label}
+        </button>`;
+    }).join("");
   },
 
   bind() {

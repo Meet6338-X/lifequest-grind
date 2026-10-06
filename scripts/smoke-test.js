@@ -444,6 +444,21 @@ function check(name, fn) {
     return "streak kept at 5 · freeze consumed";
   });
 
+  check("companion store feed + skins", () => {
+    ["storeBalance", "storeSkins", "feedBtn"].forEach((id) => {
+      if (!q(id)) throw new Error("missing #" + id);
+    });
+    const xpBefore = ev("state.profile.xp");
+    ev("state.settings.companion = 'dragon';");
+    if (!ev("Companion.feed()")) throw new Error("feed failed");
+    if (ev("state.profile.xp") !== xpBefore + 8) throw new Error("no snack XP");
+    if (!ev("Companion.buySkin('frost-dragon')")) throw new Error("skin buy failed");
+    ev("Companion.render()");
+    if (q("creature").textContent !== "🐲") throw new Error("skin not worn: " + q("creature").textContent);
+    ev("state.settings.compSkin = null; saveState(); Companion.render();");
+    return "snack +8 XP · frost skin worn";
+  });
+
   console.log("\n=== SMOKE RESULTS ===");
   results.forEach((r) => console.log(r));
   console.log("\n=== ERRORS (" + errors.length + ") ===");
