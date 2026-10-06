@@ -4,5 +4,6 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("LQ", {
   isElectron: true,
-  openPlayer: (url) => ipcRenderer.send("open-player", String(url || ""))
+  openPlayer: (url) => ipcRenderer.send("open-player", String(url || "")),
+  openMeet: (url) => ipcRenderer.send("open-meet", String(url || ""))
 });

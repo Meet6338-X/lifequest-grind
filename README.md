@@ -69,7 +69,7 @@ npx.cmd --yes serve -l 4174 results
 | Companion | 4 types x 5-7 evolution stages (one stage per 50 XP, evolves early), trains/eats/grows every second, fly animations, speech bubbles, snack + skin store |
 | Styles | Buyable timer faces, coin chart themes and card styles |
 | Dashboard | Add or remove blocks (companion, stats, coin market, quests, sessions, rooms) from Settings |
-| Study rooms | Friend list, room codes, shared coin goals, leaderboard via exported progress files, Google Meet links that attach to sessions |
+| Study rooms | Friend list, room codes, shared coin goals, leaderboard via exported progress files, Google Meet links that attach to sessions and pop out as an overlay |
 | Themes | Memphis cream (default), dark glass, cyber, forest, light |
 | Backgrounds | 9 options: none + 8 bundled 4K anime scenes, custom URL, adjustable veil, panel transparency slider |
 | Layout | Drag any dashboard block to resize it, add/remove blocks, collapsible sidebar (edge-drag to reopen), interface size slider |

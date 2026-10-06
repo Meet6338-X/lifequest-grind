@@ -1617,6 +1617,24 @@ function bindEvents() {
     Rooms.renderMeet();
     UI.toast("Meet linked. Finished sessions will carry it.");
   });
+  // Pop out: small overlay window with the live call (exe always-on-top,
+  // web gets a compact popup — Meet blocks iframes, so no embed)
+  document.getElementById("meetPopBtn").addEventListener("click", () => {
+    const link = state.currentMeet || document.getElementById("meetUrl").value.trim();
+    if (!link || !/^https?:\/\//i.test(link)) { UI.toast("Link a Meet first, then pop it out"); return; }
+    if (window.LQ && window.LQ.isElectron) {
+      window.LQ.openMeet(link);
+      UI.toast("Call popped out over everything");
+      return;
+    }
+    try {
+      const pop = window.open(link, "lifequest-meet", "width=520,height=400,menubar=no,toolbar=no");
+      if (!pop) throw new Error("blocked");
+      UI.toast("Call popped out (keep this tab open)");
+    } catch (err) {
+      UI.toast("Popup blocked. Allow popups, or use the exe overlay.");
+    }
+  });
   document.getElementById("meetCopyBtn").addEventListener("click", async () => {
     const link = state.currentMeet || document.getElementById("meetUrl").value.trim();
     if (!link) { UI.toast("No Meet link to copy"); return; }
