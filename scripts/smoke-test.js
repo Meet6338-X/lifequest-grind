@@ -499,6 +499,26 @@ function check(name, fn) {
     return q("fameList").textContent.slice(0, 50);
   });
 
+  check("pomodoro runs phases + completion bonus", async () => {
+    ["pomoFocus", "pomoBreak", "pomoCycles", "pomoBtn"].forEach((id) => {
+      if (!q(id)) throw new Error("missing #" + id);
+    });
+    // 2 cycles: force phase ends instead of waiting minutes
+    q("pomoFocus").value = "25"; q("pomoBreak").value = "5"; q("pomoCycles").value = "2";
+    q("pomoBtn").dispatchEvent(new window.Event("click", { bubbles: true }));
+    if (!ev("Pomo.on")) throw new Error("pomo did not start");
+    ev("Pomo.endAt = Date.now() - 50; tick();"); // end focus 1 -> break
+    if (ev("Pomo.phase") !== "break") throw new Error("phase=" + ev("Pomo.phase"));
+    const coinsMid = ev("state.profile.coins");
+    ev("Pomo.endAt = Date.now() - 50; tick();"); // end break -> focus 2
+    if (ev("Pomo.phase") !== "focus") throw new Error("back to focus failed");
+    ev("Pomo.endAt = Date.now() - 50; tick();"); // end focus 2 -> done + bonus
+    if (ev("Pomo.on")) throw new Error("pomo did not stop");
+    if (!(ev("state.profile.coins") >= coinsMid + 25)) throw new Error("no completion bonus");
+    ev("stopPomo(true);");
+    return "focus/break/focus + bonus ok";
+  });
+
   console.log("\n=== SMOKE RESULTS ===");
   results.forEach((r) => console.log(r));
   console.log("\n=== ERRORS (" + errors.length + ") ===");
