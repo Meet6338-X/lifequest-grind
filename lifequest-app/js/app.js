@@ -51,6 +51,88 @@ function switchView(name) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+/* ---------- pomodoro: focus/break cycles on top of the master timer ----------
+   Focus phases finish through the normal finishTimer path (real coins,
+   real sessions). Break phases count down and are discarded. */
+const Pomo = { on: false, phase: "focus", cyclesLeft: 0, cyclesTotal: 0, endAt: 0, focusSec: 0, breakSec: 0 };
+
+function pomoLabel() {
+  const left = Math.max(0, Math.ceil((Pomo.endAt - Date.now()) / 1000));
+  const mm = String(Math.floor(left / 60)).padStart(2, "0");
+  const ss = String(left % 60).padStart(2, "0");
+  return Pomo.phase === "focus"
+    ? `🍅 focus ${mm}:${ss} left · cycle ${Pomo.cyclesTotal - Pomo.cyclesLeft + 1}/${Pomo.cyclesTotal}`
+    : `☕ break ${mm}:${ss} · next cycle ${Pomo.cyclesTotal - Pomo.cyclesLeft + 1}/${Pomo.cyclesTotal}`;
+}
+
+function startPomo() {
+  const focusMin = Math.max(0.05, toNumber(document.getElementById("pomoFocus").value, 25) || 25);
+  const breakMin = Math.max(0.05, toNumber(document.getElementById("pomoBreak").value, 5) || 5);
+  const cycles = Math.min(12, Math.max(1, Math.round(toNumber(document.getElementById("pomoCycles").value, 4) || 4)));
+  Pomo.on = true;
+  Pomo.phase = "focus";
+  Pomo.cyclesLeft = cycles;
+  Pomo.cyclesTotal = cycles;
+  Pomo.focusSec = Math.round(focusMin * 60);
+  Pomo.breakSec = Math.round(breakMin * 60);
+  resetTimer();
+  startTimer();
+  Pomo.endAt = Date.now() + Pomo.focusSec * 1000;
+  const hint = document.getElementById("timerHint");
+  if (hint) hint.textContent = pomoLabel();
+  const btn = document.getElementById("pomoBtn");
+  if (btn) btn.textContent = "Stop 🍅";
+  UI.toast(`Pomodoro started: ${cycles} x ${focusMin}m`);
+  Companion.react("start");
+}
+
+function stopPomo(silent) {
+  Pomo.on = false;
+  if (timer.running) pauseTimer();
+  resetTimer();
+  const btn = document.getElementById("pomoBtn");
+  if (btn) btn.textContent = "Pomodoro";
+  if (!silent) {
+    const hint = document.getElementById("timerHint");
+    if (hint) hint.textContent = "Press Start to begin a session";
+  }
+}
+
+/* called from tick(): advances phases when a countdown hits zero */
+function pomoTick() {
+  if (!Pomo.on || !timer.running) return;
+  if (Date.now() < Pomo.endAt) {
+    const hint = document.getElementById("timerHint");
+    if (hint && timer.running) hint.textContent = pomoLabel();
+    return;
+  }
+  if (Pomo.phase === "focus") {
+    finishTimer();
+    Pomo.cyclesLeft -= 1;
+    if (Pomo.cyclesLeft <= 0) {
+      stopPomo(true);
+      addReward(25, 25);
+      UI.toast("🍅 All pomodoros done! +25 bonus coins", "gold");
+      Companion.react("level");
+      renderAll();
+      return;
+    }
+    Pomo.phase = "break";
+    resetTimer();
+    startTimer();
+    Pomo.endAt = Date.now() + Pomo.breakSec * 1000;
+    UI.toast("Focus logged. Break time ☕");
+  } else {
+    Pomo.phase = "focus";
+    resetTimer();
+    startTimer();
+    Pomo.endAt = Date.now() + Pomo.focusSec * 1000;
+    UI.toast("Break over. Back to focus 🍅");
+    Companion.react("start");
+  }
+  renderAll();
+}
+
 /* ---------- timer engine ---------- */
 const timer = {
   elapsedMs: 0,
@@ -77,6 +159,7 @@ function tick() {
   timer.elapsedMs += now - timer.lastTs;
   timer.lastTs = now;
   renderTime();
+  pomoTick();
 }
 
 function setTimerUi(running) {
@@ -1083,6 +1166,9 @@ function bindEvents() {
   });
   document.getElementById("pauseBtn").addEventListener("click", pauseTimer);
   document.getElementById("finishBtn").addEventListener("click", finishTimer);
+  document.getElementById("pomoBtn").addEventListener("click", () => {
+    Pomo.on ? stopPomo() : startPomo();
+  });
   document.getElementById("manualLogBtn").addEventListener("click", logManualSession);
   document.getElementById("sessionForm").addEventListener("submit", (e) => e.preventDefault());
 
