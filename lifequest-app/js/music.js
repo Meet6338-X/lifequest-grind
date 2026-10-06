@@ -120,9 +120,12 @@ const Music = {
 
   /* Plain-embed path: never throws player-config errors. Controls keep
      working through postMessage (needs enablejsapi=1 in the URL). */
-  embedSrc(parsed) {
+  embedSrc(parsed, opts) {
     if (!parsed) return null;
-    const origin = (typeof location !== "undefined" && location.origin && location.origin !== "null")
+    // In the floating window the document origin is opaque, so any
+    // origin= parameter mismatches and YouTube answers 153. Drop it there.
+    const noOrigin = !!(opts && opts.noOrigin);
+    const origin = (!noOrigin && typeof location !== "undefined" && location.origin && location.origin !== "null")
       ? `&origin=${encodeURIComponent(location.origin)}` : "";
     if (parsed.listId && !parsed.videoId) {
       return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(parsed.listId)}&autoplay=1&rel=0&enablejsapi=1${origin}`;
@@ -151,9 +154,10 @@ const Music = {
     };
   },
 
-  mountPlain(parsed, url) {
-    const src = this.embedSrc(parsed);
+  mountPlain(parsed, url, opts) {
+    const src = this.embedSrc(parsed, opts);
     if (!src) return false;
+    const quiet = !!(opts && opts.quiet);
     const dock = document.getElementById("musicDock");
     const frame = document.getElementById("musicFrame");
     if (!dock || !frame) return false;
@@ -172,7 +176,7 @@ const Music = {
     const applyVol = () => { try { this.player.setVolume(vol); } catch (e) { /* ignore */ } };
     iframe.addEventListener("load", applyVol);
     applyVol();
-    if (window.UI) UI.toast("Music player ready 🎵 (plain mode)");
+    if (!quiet && window.UI) UI.toast("Music player ready 🎵 (plain mode)");
     const note = document.getElementById("musicDockNote");
     if (note) note.textContent = "Loaded. Player sits bottom right.";
     return true;

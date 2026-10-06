@@ -190,6 +190,15 @@ function check(name, fn) {
     return "routing + embed URLs ok";
   });
 
+  check("153 fix: floating embed drops origin", () => {
+    const withOrigin = ev("Music.embedSrc(Music.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'))");
+    if (!withOrigin.includes("origin=")) throw new Error("main-page embed lost origin: " + withOrigin);
+    const noOrigin = ev("Music.embedSrc(Music.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), {noOrigin:true})");
+    if (noOrigin.includes("origin=")) throw new Error("floating embed kept origin: " + noOrigin);
+    if (!noOrigin.includes("/dQw4w9WgXcQ")) throw new Error("video id lost: " + noOrigin);
+    return "origin kept on page, dropped in float";
+  });
+
   check("manual time entry 90min", () => {
     ev(`
       document.getElementById("fStart").value = "2026-10-05T10:00";
