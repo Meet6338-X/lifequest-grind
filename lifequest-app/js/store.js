@@ -22,6 +22,8 @@ const DEFAULT_STATE = {
     bgVeil: 55,
     companion: "dragon",
     companionName: "Ember",
+    compSkins: [],
+    compSkin: null,
     musicUrl: "",
     musicVolume: 55,
     wakaKey: "",
