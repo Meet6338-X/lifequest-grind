@@ -61,6 +61,7 @@ npx.cmd --yes serve -l 4174 results
 | Session details | Expanded form lives in a modal (Session details button), main screen stays clean and shareable |
 | Coin market | Green/red candlestick chart from real session coins, live last candle, on dashboard and stats |
 | Quests | Priorities, one-tap complete, coins per quest, daily bonus meter |
+| Weekly boss | This week's coins damage a rotating boss (750 HP); slay it for loot |
 | LeetCode lab | Problem tracker, 8 statuses, difficulty filters, review queue, dual-profile live sync with combined totals |
 | Rewards | Money (harder per-category rates), Money shop (boosters, streak freeze), XP, levels, streaks, 12 badges |
 | Companion | 4 types x 5-7 evolution stages (one stage per 50 XP, evolves early), trains/eats/grows every second, fly animations, speech bubbles, snack + skin store |

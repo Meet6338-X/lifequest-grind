@@ -471,6 +471,26 @@ function check(name, fn) {
     return "neon + sunset unlocked and applied";
   });
 
+  check("weekly boss damage + loot", () => {
+    ["bossName", "bossHp", "bossBar", "bossWeek", "bossClaimBtn"].forEach((id) => {
+      if (!q(id)) throw new Error("missing #" + id);
+    });
+    ev("renderBoss()");
+    if (!q("bossName").textContent) throw new Error("boss has no name");
+    // deterministic kill: one big session this week, then claim
+    const before = ev("state.profile.coins");
+    ev(`state.sessions.unshift({ id: "boss-test", title: "Boss push", category: "Coding",
+      source: "Manual", status: "Completed", difficulty: "None", project: "", language: "",
+      problem: "", tags: [], mood: "", focusScore: "", notes: "",
+      startedAt: new Date().toISOString(), endedAt: new Date().toISOString(),
+      durationSec: 3600, coins: 800, xp: 640 });`);
+    if (!ev("claimBoss()")) throw new Error("claim failed");
+    const after = ev("state.profile.coins");
+    if (!(after > before)) throw new Error("no loot paid");
+    if (!q("bossClaimBtn").disabled) throw new Error("claim not locked after loot");
+    return `boss slain · loot paid ${before} -> ${after}`;
+  });
+
   console.log("\n=== SMOKE RESULTS ===");
   results.forEach((r) => console.log(r));
   console.log("\n=== ERRORS (" + errors.length + ") ===");

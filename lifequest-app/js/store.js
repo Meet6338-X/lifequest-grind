@@ -49,6 +49,7 @@ const DEFAULT_STATE = {
   leetcodeLive: null,
   leetcodeLive2: null,
   github: null,
+  bossLoot: null,
   friends: [],
   rooms: [],
   roomProgress: {},
