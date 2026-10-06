@@ -891,6 +891,11 @@ async function floatMusic() {
     try {
       const home = dock.parentNode;
       const next = dock.nextSibling;
+      // Rebuild the frame for the floating window first: moving the old
+      // player reloads it under an opaque origin, and a stale origin=
+      // parameter makes YouTube answer 153. Fresh no-origin embed = clean.
+      const parsed = Music.parse(state.settings.musicUrl || url);
+      if (parsed) Music.mountPlain(parsed, state.settings.musicUrl || url, { noOrigin: true, quiet: true });
       const win = await window.documentPictureInPicture.requestWindow({ width: 360, height: 320 });
       win.document.title = "Focus tunes";
       const css = win.document.createElement("style");
@@ -905,7 +910,7 @@ async function floatMusic() {
       win.addEventListener("pagehide", () => {
         if (home) home.insertBefore(dock, next);
       });
-      UI.toast("Floating over other apps (player restarts)");
+      UI.toast("Floating over other apps — tap Play if it paused");
       return;
     } catch (e) {
       UI.toast("Float failed (" + (e && e.message ? e.message : e) + "). The exe overlay always works.");
