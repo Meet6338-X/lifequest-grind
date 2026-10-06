@@ -1,0 +1,149 @@
+/* ============================================================
+   LifeQuest themes
+   Memphis cream is the default. Others are switchable skins.
+   ============================================================ */
+
+:root,
+[data-theme="memphis"] {
+  --bg: #f5efe2;
+  --bg-veil: rgba(245, 239, 226, 0.55);
+  --panel: #fffdf6;
+  --panel-2: #f9f3e6;
+  --text: #17140d;
+  --muted: #6b6355;
+  --line: #17140d;
+  --bw: 3px;
+  --accent: #12b3a4;
+  --accent-2: #ff5b57;
+  --mustard: #ffc531;
+  --violet: #6b5be6;
+  --sky: #3aa0ff;
+  --coral: #ff5b57;
+  --teal: #12b3a4;
+  --danger: #e03616;
+  --shadow: 8px 8px 0 #17140d;
+  --shadow-sm: 5px 5px 0 #17140d;
+  --shadow-press: 3px 3px 0 #17140d;
+  --radius: 22px;
+  --radius-sm: 14px;
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --timer-ink-a: #17140d;
+  --timer-ink-b: #12b3a4;
+  --confetti-op: 1;
+  --chart-grid: rgba(23, 20, 13, 0.12);
+}
+
+[data-theme="dark"] {
+  --bg: #070b14;
+  --bg-veil: rgba(7, 11, 20, 0.72);
+  --panel: rgba(17, 24, 39, 0.86);
+  --panel-2: rgba(31, 41, 55, 0.7);
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --line: rgba(148, 163, 184, 0.35);
+  --bw: 1px;
+  --accent: #7c3aed;
+  --accent-2: #06b6d4;
+  --mustard: #fbbf24;
+  --violet: #8b5cf6;
+  --sky: #38bdf8;
+  --coral: #f87171;
+  --teal: #2dd4bf;
+  --danger: #ef4444;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow-press: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --radius: 22px;
+  --timer-ink-a: #a78bfa;
+  --timer-ink-b: #22d3ee;
+  --confetti-op: 0.35;
+  --chart-grid: rgba(148, 163, 184, 0.14);
+}
+
+[data-theme="cyber"] {
+  --bg: #02040a;
+  --bg-veil: rgba(2, 4, 10, 0.75);
+  --panel: #0b1022;
+  --panel-2: #121a36;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --line: rgba(34, 211, 238, 0.4);
+  --bw: 2px;
+  --accent: #22d3ee;
+  --accent-2: #f472b6;
+  --mustard: #facc15;
+  --violet: #a78bfa;
+  --sky: #38bdf8;
+  --coral: #f472b6;
+  --teal: #22d3ee;
+  --danger: #fb7185;
+  --shadow: 8px 8px 0 rgba(34, 211, 238, 0.35);
+  --shadow-sm: 5px 5px 0 rgba(34, 211, 238, 0.35);
+  --shadow-press: 3px 3px 0 rgba(34, 211, 238, 0.35);
+  --radius: 18px;
+  --timer-ink-a: #22d3ee;
+  --timer-ink-b: #f472b6;
+  --confetti-op: 0.5;
+  --chart-grid: rgba(34, 211, 238, 0.14);
+}
+
+[data-theme="forest"] {
+  --bg: #07110b;
+  --bg-veil: rgba(7, 17, 11, 0.72);
+  --panel: #0e1a12;
+  --panel-2: #14251a;
+  --text: #ecfdf5;
+  --muted: #86efac;
+  --line: rgba(134, 239, 172, 0.35);
+  --bw: 2px;
+  --accent: #22c55e;
+  --accent-2: #84cc16;
+  --mustard: #fde047;
+  --violet: #4ade80;
+  --sky: #86efac;
+  --coral: #f87171;
+  --teal: #2dd4bf;
+  --danger: #f87171;
+  --shadow: 8px 8px 0 rgba(34, 197, 94, 0.3);
+  --shadow-sm: 5px 5px 0 rgba(34, 197, 94, 0.3);
+  --shadow-press: 3px 3px 0 rgba(34, 197, 94, 0.3);
+  --radius: 20px;
+  --timer-ink-a: #86efac;
+  --timer-ink-b: #22c55e;
+  --confetti-op: 0.45;
+  --chart-grid: rgba(134, 239, 172, 0.14);
+}
+
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --bg-veil: rgba(248, 250, 252, 0.6);
+  --panel: #ffffff;
+  --panel-2: #f1f5f9;
+  --text: #0f172a;
+  --muted: #475569;
+  --line: rgba(15, 23, 42, 0.85);
+  --bw: 2px;
+  --accent: #4f46e5;
+  --accent-2: #06b6d4;
+  --mustard: #f59e0b;
+  --violet: #6366f1;
+  --sky: #0ea5e9;
+  --coral: #ef4444;
+  --teal: #14b8a6;
+  --danger: #dc2626;
+  --shadow: 8px 8px 0 #0f172a;
+  --shadow-sm: 5px 5px 0 #0f172a;
+  --shadow-press: 3px 3px 0 #0f172a;
+  --radius: 20px;
+  --timer-ink-a: #4f46e5;
+  --timer-ink-b: #0ea5e9;
+  --confetti-op: 0.9;
+  --chart-grid: rgba(15, 23, 42, 0.1);
+}
+
+/* Non-Memphis themes get softer corners + no hard-press scaling on cards */
+[data-theme="dark"] .card,
+[data-theme="cyber"] .card,
+[data-theme="forest"] .card,
+[data-theme="light"] .card { border-radius: var(--radius); }

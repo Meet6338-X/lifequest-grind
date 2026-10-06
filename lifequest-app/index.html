@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en" data-theme="memphis">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LifeQuest — Gamified Activity Tracker</title>
+  <meta name="description" content="Track time, tasks, LeetCode and coding. Earn coins, XP and grow your companion." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/themes.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <!-- Animated Memphis confetti background (CSS only) -->
+  <div class="confetti" aria-hidden="true">
+    <svg class="cf cf-tri" style="top:11%;left:4%" viewBox="0 0 80 70"><path d="M40 6 L74 64 L6 64 Z" fill="#ff5b57" stroke="#17140d" stroke-width="5" stroke-linejoin="round"/></svg>
+    <svg class="cf cf-arc" style="top:6%;right:24%" viewBox="0 0 80 80"><path d="M8 72 A64 64 0 0 1 72 8" fill="none" stroke="#12b3a4" stroke-width="14" stroke-linecap="round"/></svg>
+    <svg class="cf cf-ring" style="top:34%;right:6%" viewBox="0 0 80 80"><circle cx="40" cy="40" r="30" fill="none" stroke="#ffc531" stroke-width="9" stroke-dasharray="2 14" stroke-linecap="round"/></svg>
+    <svg class="cf cf-plus" style="top:64%;left:7%" viewBox="0 0 80 80"><path d="M40 12 V68 M12 40 H68" stroke="#6b5be6" stroke-width="16" stroke-linecap="round"/></svg>
+    <svg class="cf cf-squiggle" style="top:17%;left:38%" viewBox="0 0 120 40"><path d="M6 24 Q20 4 34 20 T62 20 T90 20 T114 16" fill="none" stroke="#17140d" stroke-width="6" stroke-linecap="round"/></svg>
+    <svg class="cf cf-half" style="bottom:26%;right:14%" viewBox="0 0 80 46"><path d="M4 44 A36 36 0 0 1 76 44 Z" fill="#ffc531" stroke="#17140d" stroke-width="5"/></svg>
+    <svg class="cf cf-dot" style="top:52%;left:46%" viewBox="0 0 40 40"><circle cx="20" cy="20" r="13" fill="#12b3a4" stroke="#17140d" stroke-width="4"/></svg>
+    <svg class="cf cf-zig" style="bottom:12%;left:26%" viewBox="0 0 120 40"><polyline points="4,32 24,8 44,32 64,8 84,32 104,8" fill="none" stroke="#3aa0ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg class="cf cf-striped" style="bottom:8%;right:34%" viewBox="0 0 80 80"><defs><pattern id="stripeC" width="10" height="10" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#f5efe2"/><rect width="5" height="10" fill="#ff5b57"/></pattern></defs><circle cx="40" cy="40" r="30" fill="url(#stripeC)" stroke="#17140d" stroke-width="5"/></svg>
+  </div>
+
+  <!-- Anime / scenic background layer -->
+  <div class="bg-image" id="bgImage" aria-hidden="true"></div>
+
+  <div class="app">
+    <!-- ============ SIDEBAR / MOBILE NAV ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo-tile" aria-hidden="true">
+          <svg viewBox="0 0 40 40"><path d="M6 26 Q13 10 20 22 T34 14" fill="none" stroke="#17140d" stroke-width="5" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="wordmark">LifeQuest</div>
+          <div class="tagline">timer · quests · rewards</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="mainNav" aria-label="Main">
+        <button class="nav-btn active" data-view="dashboard"><span class="nav-ico">◈</span> Dashboard</button>
+        <button class="nav-btn" data-view="tasks"><span class="nav-ico">✓</span> Tasks</button>
+        <button class="nav-btn" data-view="leetcode"><span class="nav-ico">⧗</span> LeetCode</button>
+        <button class="nav-btn" data-view="stats"><span class="nav-ico">▤</span> Stats</button>
+        <button class="nav-btn" data-view="settings"><span class="nav-ico">⚙</span> Settings</button>
+      </nav>
+
+      <div class="side-companion" id="sideCompanion"></div>
+
+      <div class="side-foot">
+        <div class="chip chip-mustard" id="saveChip" title="Everything is stored locally as JSON">JSON local</div>
+        <button class="btn btn-ghost btn-sm" id="sideCollapseBtn" type="button" title="Hide sidebar">⇤ Hide</button>
+      </div>
+    </aside>
+
+    <!-- reopen tab + edge drag zone (sidebar hidden) -->
+    <button id="sideOpenBtn" type="button" title="Open sidebar" hidden>⇥</button>
+    <div id="edgeZone" title="Drag right to open sidebar"></div>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main">
+
+      <!-- ---------- DASHBOARD ---------- -->
+      <section class="view active" id="view-dashboard">
+        <header class="topbar">
+          <div>
+            <h1>Dashboard</h1>
+            <p class="muted">One timer. Every quest. Loud rewards.</p>
+          </div>
+          <div class="header-stats">
+            <div class="chip chip-mustard" id="moneyChip">$0.00</div>
+            <div class="chip chip-violet" id="levelChip">Level 1</div>
+            <div class="chip chip-coral" id="streakChip">0 day streak</div>
+          </div>
+        </header>
+
+        <div class="grid dash-grid">
+          <!-- Master timer -->
+          <article class="card span2 timer-card" id="timerCard">
+            <span class="resize-handle" data-card="timer" title="Drag to resize this block">⤡</span>
+            <div class="card-head">
+              <h2>Master Timer</h2>
+              <div class="row">
+                <span class="chip chip-teal" id="timerState">Idle</span>
+                <button type="button" class="btn btn-ghost btn-sm" id="detailsBtn">✎ Session details</button>
+              </div>
+            </div>
+
+            <div class="timer" id="timeDisplay">00:00:00</div>
+            <div class="timer-sub muted small" id="timerHint">Press Start to begin a session</div>
+
+            <form id="titleForm" class="stack title-row" autocomplete="off">
+              <input id="fTitle" class="input" placeholder="What are you working on? (e.g. Solved Two Sum)" />
+              <div class="muted small" id="sessionBrief">Other · Manual</div>
+            </form>
+
+            <div class="row timer-actions">
+              <button id="startBtn" class="btn btn-coral">Start</button>
+              <button id="pauseBtn" class="btn btn-ghost" disabled>Pause</button>
+              <button id="finishBtn" class="btn btn-teal" disabled>Finish + Earn</button>
+            </div>
+
+            <div class="live-earn" id="liveEarn" hidden>+0 coins so far</div>
+          </article>
+
+          <!-- Companion -->
+          <article class="card" id="companionCard">
+            <span class="resize-handle" data-card="companion" title="Drag to resize this block">⤡</span>
+            <div class="card-head">
+              <h2>Companion</h2>
+              <span class="chip chip-violet" id="companionTypeChip">dragon</span>
+            </div>
+            <div class="habitat" id="habitat">
+              <div class="speech" id="speech" hidden></div>
+              <div class="creature" id="creature"></div>
+              <div class="ground"></div>
+            </div>
+            <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+            <div class="muted small" id="companionMeta" style="margin-top:10px"></div>
+            <div class="muted small" id="companionAct" style="margin-top:4px"></div>
+            <div class="stage-track" id="stageTrack"></div>
+          </article>
+
+          <!-- Stats -->
+          <article class="card" id="statsCard">
+            <span class="resize-handle" data-card="stats" title="Drag to resize this block">⤡</span>
+            <div class="card-head"><h2>Stats</h2></div>
+            <div class="stat-grid" id="statsGrid"></div>
+            <h3 class="sub-h">Last 7 days</h3>
+            <div class="chart" id="weekChart"></div>
+          </article>
+
+          <!-- Coin market (live candles) -->
+          <article class="card market-card" id="marketCard">
+            <span class="resize-handle" data-card="market" title="Drag to resize this block">⤡</span>
+            <div class="card-head">
+              <h2>Coin market</h2>
+              <span class="live-badge" id="coinLive"><i></i>LIVE</span>
+            </div>
+            <div id="coinChart" class="candle-host"></div>
+            <div class="muted small" id="coinSummary"></div>
+          </article>
+
+          <!-- Quick tasks -->
+          <article class="card" id="questsCard">
+            <span class="resize-handle" data-card="quests" title="Drag to resize this block">⤡</span>
+            <div class="card-head"><h2>Today's quests</h2><button class="link-btn" data-goto="tasks">open board →</button></div>
+            <form id="quickTaskForm" class="row" style="margin-bottom:12px">
+              <input id="quickTaskTitle" class="input" placeholder="Add a quest" />
+              <button class="btn btn-coral btn-sm" type="submit">Add</button>
+            </form>
+            <div id="quickTaskList" class="stack scroll-list"></div>
+          </article>
+
+          <!-- Recent sessions -->
+          <article class="card" id="sessionsCard">
+            <span class="resize-handle" data-card="sessions" title="Drag to resize this block">⤡</span>
+            <div class="card-head"><h2>Recent sessions</h2><span class="muted small" id="sessionCount"></span></div>
+            <div id="sessionList" class="stack scroll-list"></div>
+          </article>
+
+          <!-- Study rooms + friends + Meet -->
+          <article class="card rooms-card" id="roomsCard">
+            <span class="resize-handle" data-card="rooms" title="Drag to resize this block">⤡</span>
+            <div class="card-head"><h2>Study rooms</h2><span class="chip chip-teal">friends</span></div>
+            <div class="stack">
+              <div class="row">
+                <input id="meetUrl" class="input grow" placeholder="Google Meet link or code (abc-defg-hij)" autocomplete="off" />
+                <button class="btn btn-violet btn-sm" id="meetNewBtn" type="button" title="Open meet.new in a new tab">New</button>
+                <button class="btn btn-teal btn-sm" id="meetJoinBtn" type="button">Link</button>
+                <button class="btn btn-ghost btn-sm" id="meetCopyBtn" type="button">Copy</button>
+              </div>
+              <label class="row small" style="gap:6px">
+                <input type="checkbox" id="meetAttach" checked /> attach Meet link to finished sessions
+              </label>
+              <div class="muted small" id="meetStatus">No Meet linked</div>
+            </div>
+            <div class="divider"></div>
+            <div class="row">
+              <input id="profileName" class="input grow" placeholder="Your display name" autocomplete="off" />
+              <input id="friendName" class="input grow" placeholder="Friend's name" autocomplete="off" />
+              <button class="btn btn-coral btn-sm" id="friendAddBtn" type="button">Add friend</button>
+            </div>
+            <div class="row" id="friendList" style="margin-top:10px"></div>
+            <div class="divider"></div>
+            <div class="row">
+              <input id="roomName" class="input grow" placeholder="New room name" autocomplete="off" />
+              <input id="roomGoal" class="input" type="number" min="50" value="500" style="max-width:130px" title="Goal in coins" />
+              <button class="btn btn-coral btn-sm" id="roomCreateBtn" type="button">Create room</button>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <input id="roomJoinCode" class="input grow" placeholder="Join with code (e.g. KX7Q2M)" autocomplete="off" />
+              <button class="btn btn-ghost btn-sm" id="roomJoinBtn" type="button">Join</button>
+            </div>
+            <input type="file" id="roomImportInput" accept="application/json,.json" hidden />
+            <div id="roomList" class="stack" style="margin-top:12px"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ---------- TASKS ---------- -->
+      <section class="view" id="view-tasks">
+        <header class="topbar">
+          <div><h1>Quest board</h1><p class="muted">Finish quests, collect coins. Simple contract.</p></div>
+          <div class="header-stats">
+            <div class="chip chip-teal" id="taskDoneChip">0 / 0 done</div>
+            <div class="chip chip-mustard" id="taskRewardChip">+12 coins each</div>
+          </div>
+        </header>
+
+        <div class="grid">
+          <article class="card span2">
+            <form id="taskForm" class="stack">
+              <div class="row">
+                <input id="taskTitle" class="input grow" placeholder="New quest, e.g. Ship portfolio v2" />
+                <select id="taskPriority" class="input" style="max-width:150px">
+                  <option value="high">High</option><option value="med" selected>Medium</option><option value="low">Low</option>
+                </select>
+                <button class="btn btn-coral" type="submit">Add quest</button>
+              </div>
+            </form>
+            <div class="row filters" id="taskFilters" style="margin:14px 0">
+              <button class="chip chip-btn active" data-filter="all">All</button>
+              <button class="chip chip-btn" data-filter="open">Open</button>
+              <button class="chip chip-btn" data-filter="done">Done</button>
+            </div>
+            <div id="taskList" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Daily bonus</h2></div>
+            <p class="muted small">Clear every open quest today to earn a streak bonus.</p>
+            <div class="big-num" id="dailyBonusNum">0%</div>
+            <div class="xp-bar"><div class="xp-fill" id="dailyBonusFill"></div></div>
+            <div class="divider"></div>
+            <div class="stat"><div class="muted small">Tasks done (all time)</div><div class="value" id="taskTotalDone">0</div></div>
+            <div class="stat" style="margin-top:10px"><div class="muted small">Coins from quests</div><div class="value" id="taskCoins">0</div></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ---------- LEETCODE ---------- -->
+      <section class="view" id="view-leetcode">
+        <header class="topbar">
+          <div><h1>LeetCode lab</h1><p class="muted">Track problems, statuses and your grind streak.</p></div>
+          <div class="header-stats"><div class="chip chip-coral" id="lcStreakChip">0 day grind</div></div>
+        </header>
+
+        <div class="grid">
+          <article class="card span2">
+            <div class="card-head"><h2>Add problem</h2></div>
+            <form id="lcForm" class="stack" autocomplete="off">
+              <div class="two">
+                <input id="lcTitle" class="input" placeholder="Problem title (e.g. Two Sum)" />
+                <input id="lcUrl" class="input" placeholder="Link (optional)" />
+              </div>
+              <div class="three">
+                <select id="lcDifficulty" class="input"><option>Easy</option><option selected>Medium</option><option>Hard</option></select>
+                <select id="lcStatus" class="input">
+                  <option>Not Started</option><option>Queued</option><option selected>In Progress</option>
+                  <option>Accepted</option><option>Wrong Answer</option><option>TLE</option><option>Needs Review</option><option>Mastered</option>
+                </select>
+                <input id="lcLanguage" class="input" placeholder="Language" />
+              </div>
+              <div class="two">
+                <input id="lcTags" class="input" placeholder="DSA tags (array, dp, graph)" />
+                <input id="lcTime" class="input" type="number" min="0" placeholder="Minutes spent" />
+              </div>
+              <textarea id="lcNotes" class="input" placeholder="Approach, pitfalls, code snippet notes (Markdown friendly)"></textarea>
+              <button class="btn btn-coral" type="submit">Add to tracker</button>
+            </form>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Live sync</h2><span class="chip chip-teal" id="lcSyncChip">manual</span></div>
+            <p class="muted small">Free alfa-leetcode-api. Your username stays on this machine.</p>
+            <div class="row" style="margin-top:10px">
+              <input id="lcUser" class="input grow" placeholder="LeetCode username" />
+              <button class="btn btn-violet btn-sm" id="lcSyncBtn">Sync</button>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <input id="lcUser2" class="input grow" placeholder="Second profile (optional)" />
+            </div>
+            <div id="lcSyncResult" class="sync-box" hidden></div>
+            <div class="divider"></div>
+            <div class="stat"><div class="muted small">Live total solved</div><div class="value" id="lcLiveTotal">—</div></div>
+          </article>
+
+          <article class="card span2">
+            <div class="card-head"><h2>Problem tracker</h2>
+              <div class="row">
+                <select id="lcFilterDiff" class="input input-sm"><option value="">All difficulties</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+                <select id="lcFilterStatus" class="input input-sm"><option value="">All statuses</option><option>Accepted</option><option>In Progress</option><option>Wrong Answer</option><option>TLE</option><option>Needs Review</option><option>Queued</option><option>Not Started</option><option>Mastered</option></select>
+              </div>
+            </div>
+            <div id="lcList" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Review queue</h2></div>
+            <div id="lcReview" class="stack"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ---------- STATS ---------- -->
+      <section class="view" id="view-stats">
+        <header class="topbar">
+          <div><h1>Progress & repos</h1><p class="muted">Where the time went and what the repos are doing.</p></div>
+          <div class="header-stats"><div class="chip chip-mustard" id="totalFocusChip">0h focused</div></div>
+        </header>
+
+        <div class="grid">
+          <article class="card span2">
+            <div class="card-head"><h2>Focus by day</h2></div>
+            <div class="chart chart-tall" id="weekChartBig"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>By category</h2></div>
+            <div id="categoryBars" class="stack"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Coins by category</h2></div>
+            <div id="moneyBars" class="stack"></div>
+          </article>
+
+          <article class="card span2">
+            <div class="card-head"><h2>Coin market</h2><span class="live-badge" id="coinLiveBig"><i></i>LIVE</span></div>
+            <div id="coinChartBig" class="candle-host"></div>
+            <div class="muted small" id="coinSummaryBig"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>GitHub repos</h2><span class="chip chip-teal" id="ghChip">free API</span></div>
+            <div class="row" style="margin-bottom:10px">
+              <input id="ghUser" class="input grow" placeholder="GitHub username" />
+              <button class="btn btn-violet btn-sm" id="ghSyncBtn">Fetch</button>
+            </div>
+            <div id="ghProfile" class="stack"></div>
+            <div id="ghRepos" class="stack" style="margin-top:10px"></div>
+          </article>
+
+          <article class="card span2">
+            <div class="card-head"><h2>Achievements</h2></div>
+            <div class="badge-grid" id="badgeGrid"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>WakaTime</h2><span class="chip chip-mustard">optional</span></div>
+            <p class="muted small">Add a free WakaTime API key to pull coding summaries. Key is stored only in this browser, never shared.</p>
+            <input id="wakaKey" class="input" type="password" placeholder="WakaTime API key" style="margin-top:10px" />
+            <div class="row" style="margin-top:10px">
+              <button class="btn btn-violet btn-sm" id="wakaTestBtn">Test connection</button>
+            </div>
+            <div id="wakaResult" class="sync-box" hidden></div>
+            <div class="divider"></div>
+            <p class="muted small">No key? Log WakaTime-style sessions manually with source = WakaTime.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ---------- SETTINGS ---------- -->
+      <section class="view" id="view-settings">
+        <header class="topbar">
+          <div><h1>Make it yours</h1><p class="muted">Themes, backgrounds, companion, music and data.</p></div>
+        </header>
+
+        <div class="grid">
+          <article class="card">
+            <div class="card-head"><h2>Theme</h2></div>
+            <div class="theme-grid" id="themeGrid">
+              <button class="theme-swatch active" data-theme-pick="memphis" style="--sw:#f5efe2"><span style="--sw2:#12b3a4"></span>Memphis</button>
+              <button class="theme-swatch" data-theme-pick="dark" style="--sw:#070b14"><span style="--sw2:#7c3aed"></span>Dark glass</button>
+              <button class="theme-swatch" data-theme-pick="cyber" style="--sw:#02040a"><span style="--sw2:#22d3ee"></span>Cyber</button>
+              <button class="theme-swatch" data-theme-pick="forest" style="--sw:#07110b"><span style="--sw2:#22c55e"></span>Forest</button>
+              <button class="theme-swatch" data-theme-pick="light" style="--sw:#f8fafc"><span style="--sw2:#4f46e5"></span>Light</button>
+            </div>
+          </article>
+
+          <article class="card span2">
+            <div class="card-head"><h2>Background world</h2><span class="chip chip-coral">4K anime scenery</span></div>
+            <p class="muted small">Pick a 4K backdrop or paste any image URL. Applied behind everything with a readability veil.</p>
+            <div class="bg-grid" id="bgGrid">
+              <button class="bg-swatch active" data-bg="none" style="background:#f5efe2">None</button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/night-city.jpg"></button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/sakura.jpg"></button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/space.jpg"></button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/cyberpunk.jpg"></button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/forest.jpg"></button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/ocean.jpg"></button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/sunset.jpg"></button>
+              <button class="bg-swatch" data-bg="assets/backgrounds/winter.jpg"></button>
+            </div>
+            <div class="row" style="margin-top:12px">
+              <input id="bgUrl" class="input grow" placeholder="…or paste a custom image URL" />
+              <button class="btn btn-violet btn-sm" id="bgUrlBtn">Use URL</button>
+              <label class="muted small">veil
+                <input id="bgVeil" type="range" min="0" max="90" value="55" />
+              </label>
+              <label class="muted small">panels
+                <input id="panelOpacity" type="range" min="25" max="100" value="100" title="Panel transparency: slide left to see the background through the blocks" />
+              </label>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Dashboard</h2></div>
+            <p class="muted small">Add or remove blocks from the main dashboard. Timer always stays.</p>
+            <div class="row filters" id="dashToggles" style="margin-top:12px">
+              <button class="chip chip-btn active" data-dash="companion">Companion</button>
+              <button class="chip chip-btn active" data-dash="stats">Stats</button>
+              <button class="chip chip-btn active" data-dash="market">Coin market</button>
+              <button class="chip chip-btn active" data-dash="quests">Quests</button>
+              <button class="chip chip-btn active" data-dash="sessions">Sessions</button>
+              <button class="chip chip-btn active" data-dash="rooms">Rooms</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Companion</h2></div>
+            <div class="two">
+              <select id="companionSelect" class="input">
+                <option value="plant">Plant</option><option value="animal">Animal</option>
+                <option value="dragon" selected>Dragon</option><option value="robot">Robot</option>
+              </select>
+              <input id="companionName" class="input" placeholder="Companion name" />
+            </div>
+            <p class="muted small" style="margin-top:10px">Evolves with XP. Dragons fly once they reach Drake.</p>
+            <button class="btn btn-teal btn-sm" id="companionSaveBtn" style="margin-top:10px">Save companion</button>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Music</h2><span class="chip chip-teal">YouTube</span></div>
+            <p class="muted small">Paste a YouTube video or playlist link for focus tunes.</p>
+            <input id="musicUrl" class="input" placeholder="https://youtube.com/watch?v=… or playlist link" style="margin-top:10px" />
+            <div class="row" style="margin-top:10px">
+              <input id="musicVolume" type="range" min="0" max="100" value="55" />
+              <button class="btn btn-coral btn-sm" id="musicLoadBtn">Load player</button>
+            </div>
+            <div id="musicDockNote" class="muted small" style="margin-top:8px">Player appears bottom right once loaded.</div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><h2>Reward rates</h2></div>
+            <div class="stack" id="rateList"></div>
+            <div class="two" style="margin-top:10px">
+              <label class="stack small">Task reward<input id="setTaskReward" class="input" type="number" min="0" /></label>
+              <label class="stack small">LeetCode AC bonus<input id="setLcBonus" class="input" type="number" min="0" /></label>
+            </div>
+            <button class="btn btn-teal btn-sm" id="ratesSaveBtn" style="margin-top:10px">Save rates</button>
+          </article>
+
+          <article class="card span2">
+            <div class="card-head"><h2>Data (JSON)</h2><span class="chip chip-mustard">local-first</span></div>
+            <p class="muted small">Everything lives in your browser as JSON. Export a backup, import it anywhere, or start fresh.</p>
+            <div class="row" style="margin-top:12px">
+              <button class="btn btn-teal" id="exportBtn">Export JSON</button>
+              <label class="btn btn-violet">Import JSON<input id="importInput" type="file" accept="application/json,.json" hidden /></label>
+              <button class="btn btn-ghost" id="seedBtn">Load demo data</button>
+              <button class="btn btn-danger" id="resetBtn">Reset everything</button>
+            </div>
+            <div class="divider"></div>
+            <h3 class="sub-h" style="margin-top:0">Daily files</h3>
+            <p class="muted small">One file per day plus a final file that updates every day.</p>
+            <div class="row" style="margin-top:10px">
+              <button class="btn btn-violet btn-sm" id="dailyFolderBtn" type="button">Choose folder</button>
+              <button class="btn btn-teal btn-sm" id="dailySaveBtn" type="button">Save day + final</button>
+              <button class="btn btn-ghost btn-sm" id="dailyDownloadBtn" type="button">Download day file</button>
+              <button class="btn btn-ghost btn-sm" id="finalDownloadBtn" type="button">Download final</button>
+            </div>
+            <div class="muted small" id="dailyStatus" style="margin-top:8px"></div>
+            <div class="divider"></div>
+            <div class="muted small">
+              <b>Shortcuts:</b> press <kbd>S</kbd> start/pause · <kbd>F</kbd> finish · <kbd>1-5</kbd> switch view
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Session details modal (keeps the main screen clean + shareable) -->
+  <div class="modal-backdrop" id="sessionModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sessionModalTitle">
+      <div class="modal-head">
+        <h2 id="sessionModalTitle">Session details</h2>
+        <button class="icon-btn" id="modalClose" type="button" title="Close">✕</button>
+      </div>
+      <form id="sessionForm" class="stack" autocomplete="off">
+        <div class="two">
+          <label class="stack small">Category
+            <select id="fCategory" class="input">
+              <option>Coding</option><option>LeetCode</option><option>Work</option>
+              <option>Study</option><option>Fitness</option><option>Creative</option>
+              <option selected>Other</option>
+            </select>
+          </label>
+          <label class="stack small">Source
+            <select id="fSource" class="input">
+              <option selected>Manual</option><option>LeetCode</option><option>WakaTime</option>
+            </select>
+          </label>
+        </div>
+        <button class="link-btn" id="moreToggle" type="button" aria-expanded="false">+ More fields (status, difficulty, project, notes)</button>
+        <div class="more-fields" id="moreFields" hidden>
+          <div class="two">
+            <label class="stack small">Status
+              <select id="fStatus" class="input">
+                <option selected>Completed</option><option>Accepted</option>
+                <option>In Progress</option><option>Needs Review</option>
+              </select>
+            </label>
+            <label class="stack small">Difficulty
+              <select id="fDifficulty" class="input">
+                <option selected>None</option><option>Easy</option>
+                <option>Medium</option><option>Hard</option>
+              </select>
+            </label>
+          </div>
+          <div class="two">
+            <input id="fProject" class="input" placeholder="Project (optional)" />
+            <input id="fLanguage" class="input" placeholder="Language (optional)" />
+          </div>
+          <input id="fProblem" class="input" placeholder="Problem (optional)" />
+          <input id="fTags" class="input" placeholder="Tags, comma separated (optional)" />
+          <div class="two">
+            <label class="stack small">Mood
+              <select id="fMood" class="input">
+                <option value="">—</option><option>Great</option><option>Good</option>
+                <option>Okay</option><option>Tired</option><option>Struggling</option>
+              </select>
+            </label>
+            <label class="stack small">Focus (1-5)
+              <select id="fFocus" class="input">
+                <option value="">—</option><option>1</option><option>2</option>
+                <option>3</option><option>4</option><option>5</option>
+              </select>
+            </label>
+          </div>
+          <textarea id="fNotes" class="input" placeholder="Notes (optional)"></textarea>
+        </div>
+        <div class="manual">
+          <div class="two">
+            <label class="stack small">Start<input id="fStart" class="input" type="datetime-local" /></label>
+            <label class="stack small">End<input id="fEnd" class="input" type="datetime-local" /></label>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-ghost btn-sm" id="manualLogBtn" type="button">Log manual session</button>
+            <button class="btn btn-teal btn-sm" id="modalDoneBtn" type="button">Done</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- YouTube music dock -->
+  <div class="music-dock" id="musicDock" hidden>
+    <div class="music-head">
+      <span class="music-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="small strong">Focus tunes</span>
+      <button class="icon-btn" id="musicClose" title="Close player">✕</button>
+    </div>
+    <div class="music-frame" id="musicFrame"></div>
+    <div class="row music-controls">
+      <button class="btn btn-ghost btn-sm" id="musicPlay">Play / Pause</button>
+      <button class="btn btn-ghost btn-sm" id="musicNext">Next</button>
+    </div>
+  </div>
+
+  <!-- Toasts + confetti burst host -->
+  <div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/companion.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/integrations.js"></script>
+  <script src="js/market.js"></script>
+  <script src="js/archive.js"></script>
+  <script src="js/rooms.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
