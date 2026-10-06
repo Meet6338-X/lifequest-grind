@@ -491,6 +491,14 @@ function check(name, fn) {
     return `boss slain · loot paid ${before} -> ${after}`;
   });
 
+  check("hall of fame ranks 8 weeks", () => {
+    if (!q("fameList")) throw new Error("missing #fameList");
+    ev("renderFame()");
+    const n = q("fameList").children.length;
+    if (n !== 8) throw new Error("rows=" + n);
+    return q("fameList").textContent.slice(0, 50);
+  });
+
   console.log("\n=== SMOKE RESULTS ===");
   results.forEach((r) => console.log(r));
   console.log("\n=== ERRORS (" + errors.length + ") ===");
