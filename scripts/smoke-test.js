@@ -459,6 +459,18 @@ function check(name, fn) {
     return "snack +8 XP · frost skin worn";
   });
 
+  check("style shop unlock + apply", () => {
+    ["styleBalance", "styleFaces", "styleCharts", "styleCards"].forEach((id) => {
+      if (!q(id)) throw new Error("missing #" + id);
+    });
+    if (!ev("buyStyle('faces', 'neon')")) throw new Error("neon buy failed");
+    if (doc.body.dataset.timerface !== "neon") throw new Error("face not applied");
+    if (!ev("buyStyle('charts', 'sunset')")) throw new Error("sunset buy failed");
+    if (doc.body.dataset.chart !== "sunset") throw new Error("chart not applied");
+    ev("buyStyle('faces', 'default'); buyStyle('charts', 'default');");
+    return "neon + sunset unlocked and applied";
+  });
+
   console.log("\n=== SMOKE RESULTS ===");
   results.forEach((r) => console.log(r));
   console.log("\n=== ERRORS (" + errors.length + ") ===");
