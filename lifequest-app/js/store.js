@@ -11,6 +11,8 @@ const DEFAULT_STATE = {
     name: "Player",
     coins: 0,
     xp: 0,
+    boost: 1,
+    freezes: 0,
     streak: { current: 0, best: 0, lastDay: "" },
     badges: {}
   },
@@ -182,6 +184,9 @@ function calculateReward(session, seconds) {
   if (seconds >= 3600) coins += 15; // deep work bonus
 
   coins = Math.max(1, Math.round(coins));
+  // owned coin boosters multiply the final payout
+  const boost = toNumber(state.profile.boost, 1) || 1;
+  coins = Math.max(1, Math.round(coins * boost));
   const xp = Math.max(1, Math.round(coins * 0.8));
   return { coins, xp };
 }
@@ -196,7 +201,15 @@ function addReward(coins, xp) {
   const yesterday = localISO(new Date(Date.now() - 86400000));
   const st = state.profile.streak;
   if (st.lastDay !== today) {
-    st.current = st.lastDay === yesterday ? st.current + 1 : 1;
+    if (st.lastDay === yesterday) {
+      st.current += 1;
+    } else if (st.lastDay && toNumber(state.profile.freezes, 0) > 0) {
+      // streak freeze: one missed day forgiven, streak kept
+      state.profile.freezes -= 1;
+      if (window.UI) UI.toast("🧊 Streak freeze used! Streak kept.", "gold");
+    } else {
+      st.current = st.lastDay ? 1 : st.current + 1;
+    }
     st.lastDay = today;
     st.best = Math.max(st.best, st.current);
   }
