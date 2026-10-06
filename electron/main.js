@@ -39,6 +39,15 @@ function playerTarget() {
   return path.join(__dirname, "..", "lifequest-app", "music.html");
 }
 
+/* Strongest pin level: floats over other apps, other tabs, even fullscreen. */
+function pinOnTop(win) {
+  try {
+    win.setAlwaysOnTop(true, "screen-saver");
+    win.moveTop();
+    win.on("blur", () => { if (!win.isDestroyed()) win.moveTop(); });
+  } catch (e) { /* older Electron: alwaysOnTop flag already set */ }
+}
+
 function openPlayerWindow(url) {
   const hash = "u=" + encodeURIComponent(url || "");
   if (playerWin && !playerWin.isDestroyed()) {
@@ -55,6 +64,7 @@ function openPlayerWindow(url) {
   });
   playerWin.setMenu(null);
   playerWin.loadFile(playerTarget(), { hash: "u=" + encodeURIComponent(url || "") });
+  pinOnTop(playerWin);
   playerWin.on("closed", () => { playerWin = null; });
 }
 
@@ -77,6 +87,7 @@ function openMeetWindow(url) {
   });
   meetWin.setMenu(null);
   meetWin.loadURL(url);
+  pinOnTop(meetWin);
   meetWin.on("closed", () => { meetWin = null; });
 }
 

@@ -96,6 +96,16 @@ The exe also unlocks two things the browser cannot do:
 - **System overlay tunes** — the ⧉ button pops Focus tunes into a small
   always-on-top window that floats over every application (resizable, like any
   window). On the web the same button uses a floating window where supported.
+  If nothing happens on web, the player was never loaded: the button now loads
+  your saved track first, and any real failure shows its message.
+- **Meet overlay** — Pop out puts the live call in a small window pinned at
+  screen-saver level (over apps, tabs, even fullscreen) in the exe. Browsers
+  cannot pin windows on top, so the web fallback is a focused popup that says
+  so honestly.
+- **Error 158 fixed** — playlist-only links used to hit the IFrame API's
+  video-id requirement. They now go straight to a plain embed, API failures
+  auto-fallback the same way, and Play/Next/Volume keep working through a
+  postMessage shim.
 - **Window zoom menu** — View → Bigger/Smaller/Actual size plus fullscreen.
   The in-app Interface size slider (Settings → Theme) works in both.
 

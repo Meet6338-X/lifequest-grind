@@ -171,6 +171,25 @@ function check(name, fn) {
     return `${p1.videoId}, ${p2.listId}, ${p3.videoId}`;
   });
 
+  check("158 fix: playlist-only goes plain, videos try API", () => {
+    if (ev("Music.chooseMount(Music.parse('https://youtube.com/playlist?list=PLxyz123'))") !== "plain") {
+      throw new Error("playlist not routed to plain embed");
+    }
+    if (ev("Music.chooseMount(Music.parse('https://www.youtube.com/watch?v=dQw4w9WgXcQ'))") !== "api") {
+      throw new Error("video not routed to API player");
+    }
+    if (ev("Music.chooseMount(null)") !== null) throw new Error("null not handled");
+    const src = ev("Music.embedSrc(Music.parse('https://youtube.com/playlist?list=PLxyz123'))");
+    if (!src.includes("videoseries") || !src.includes("PLxyz123") || !src.includes("enablejsapi=1")) {
+      throw new Error("bad playlist embed: " + src);
+    }
+    const vsrc = ev("Music.embedSrc(Music.parse('https://youtu.be/abcDEF12345'))");
+    if (!vsrc.includes("/abcDEF12345") || !vsrc.includes("enablejsapi=1")) {
+      throw new Error("bad video embed: " + vsrc);
+    }
+    return "routing + embed URLs ok";
+  });
+
   check("manual time entry 90min", () => {
     ev(`
       document.getElementById("fStart").value = "2026-10-05T10:00";

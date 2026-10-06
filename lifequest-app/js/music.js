@@ -67,10 +67,14 @@ const Music = {
       if (window.UI) UI.toast("That does not look like a YouTube link");
       return false;
     }
+    // Playlist-only links have no video id, and the IFrame API rejects
+    // that shape (error 158). They go straight to a plain embed.
+    if (!parsed.videoId) return this.mountPlain(parsed, url);
+
     const ok = await this.ensureApi();
     if (!ok) {
-      if (window.UI) UI.toast("Could not load YouTube player (offline?)");
-      return false;
+      if (window.UI) UI.toast("YouTube API blocked. Trying plain player…");
+      return this.mountPlain(parsed, url);
     }
 
     const dock = document.getElementById("musicDock");
@@ -90,12 +94,18 @@ const Music = {
         playerVars: { ...vars, list: parsed.listId, listType: parsed.listId && !parsed.videoId ? "playlist" : undefined },
         events: {
           onReady: () => { this.ready = true; resolve(true); },
-          onError: () => { if (window.UI) UI.toast("YouTube refused that video, try another link"); resolve(false); }
+          // error 101/150/158 (embedding blocked, bad config…):
+          // fall back to a plain embed instead of dying
+          onError: () => resolve(false)
         }
       });
     });
 
     const done = await mount();
+    if (!done) {
+      if (window.UI) UI.toast("API player refused it (code 158?). Trying plain player…");
+      return this.mountPlain(parsed, url);
+    }
     if (done) {
       state.settings.musicUrl = url;
       saveState();
@@ -106,6 +116,66 @@ const Music = {
       if (note) note.textContent = "Loaded. Player sits bottom right.";
     }
     return done;
+  },
+
+  /* Plain-embed path: never throws player-config errors. Controls keep
+     working through postMessage (needs enablejsapi=1 in the URL). */
+  embedSrc(parsed) {
+    if (!parsed) return null;
+    const origin = (typeof location !== "undefined" && location.origin && location.origin !== "null")
+      ? `&origin=${encodeURIComponent(location.origin)}` : "";
+    if (parsed.listId && !parsed.videoId) {
+      return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(parsed.listId)}&autoplay=1&rel=0&enablejsapi=1${origin}`;
+    }
+    return `https://www.youtube.com/embed/${encodeURIComponent(parsed.videoId)}?autoplay=1&rel=0&enablejsapi=1${parsed.listId ? `&list=${encodeURIComponent(parsed.listId)}` : ""}${origin}`;
+  },
+
+  chooseMount(parsed) {
+    if (!parsed) return null;
+    return parsed.videoId ? "api" : "plain";
+  },
+
+  plainShim(iframe) {
+    let playing = true;
+    const cmd = (func, args) => {
+      try {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func, args: args || [] }), "*");
+      } catch (e) { /* player not ready yet */ }
+    };
+    return {
+      setVolume: (v) => cmd("setVolume", [v]),
+      playVideo: () => { playing = true; cmd("playVideo"); },
+      pauseVideo: () => { playing = false; cmd("pauseVideo"); },
+      nextVideo: () => cmd("nextVideo"),
+      getPlayerState: () => (playing ? 1 : 2)
+    };
+  },
+
+  mountPlain(parsed, url) {
+    const src = this.embedSrc(parsed);
+    if (!src) return false;
+    const dock = document.getElementById("musicDock");
+    const frame = document.getElementById("musicFrame");
+    if (!dock || !frame) return false;
+    dock.hidden = false;
+    frame.innerHTML = "";
+    const iframe = document.createElement("iframe");
+    iframe.src = src;
+    iframe.allow = "autoplay; encrypted-media; fullscreen; picture-in-picture";
+    iframe.allowFullscreen = true;
+    frame.appendChild(iframe);
+    this.player = this.plainShim(iframe);
+    this.ready = true;
+    state.settings.musicUrl = url;
+    saveState();
+    const vol = toNumber(state.settings.musicVolume, 55);
+    const applyVol = () => { try { this.player.setVolume(vol); } catch (e) { /* ignore */ } };
+    iframe.addEventListener("load", applyVol);
+    applyVol();
+    if (window.UI) UI.toast("Music player ready 🎵 (plain mode)");
+    const note = document.getElementById("musicDockNote");
+    if (note) note.textContent = "Loaded. Player sits bottom right.";
+    return true;
   },
 
   playPause() {

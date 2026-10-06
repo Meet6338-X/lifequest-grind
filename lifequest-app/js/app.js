@@ -874,9 +874,16 @@ async function floatMusic() {
   const dock = document.getElementById("musicDock");
   const urlInput = document.getElementById("musicUrl");
   const url = (urlInput && urlInput.value.trim()) || state.settings.musicUrl || "";
-  if (window.LQ && window.LQ.isElectron) {
+  // dock hidden (no track loaded yet): load the saved track first
+  // instead of dying silently — this was the "nothing happens" bug
+  if (dock && dock.hidden) {
     if (!url) { UI.toast("Link a YouTube track first, then float it"); return; }
-    window.LQ.openPlayer(url);
+    UI.toast("Loading track, floating next…");
+    const loaded = await Music.load(url);
+    if (!loaded || dock.hidden) { UI.toast("Could not load that track"); return; }
+  }
+  if (window.LQ && window.LQ.isElectron) {
+    window.LQ.openPlayer(state.settings.musicUrl || url);
     UI.toast("Tunes popped out over everything");
     return;
   }
@@ -900,7 +907,10 @@ async function floatMusic() {
       });
       UI.toast("Floating over other apps (player restarts)");
       return;
-    } catch (e) { /* fall through to the hint */ }
+    } catch (e) {
+      UI.toast("Float failed (" + (e && e.message ? e.message : e) + "). The exe overlay always works.");
+      return;
+    }
   }
   UI.toast("System overlay lives in the LifeQuest exe (or Chrome PiP)");
 }
@@ -1630,7 +1640,9 @@ function bindEvents() {
     try {
       const pop = window.open(link, "lifequest-meet", "width=520,height=400,menubar=no,toolbar=no");
       if (!pop) throw new Error("blocked");
-      UI.toast("Call popped out (keep this tab open)");
+      try { pop.focus(); } catch (e) { /* ignore */ }
+      // browsers cannot pin windows on top (only the exe can) — say so plainly
+      UI.toast("Call popped out. True pin-over-everything needs the exe.");
     } catch (err) {
       UI.toast("Popup blocked. Allow popups, or use the exe overlay.");
     }
