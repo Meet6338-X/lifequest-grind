@@ -800,6 +800,7 @@ function renderAll() {
   renderShop();
   applyStyles();
   renderStyles();
+  renderBoss();
   if (typeof Companion !== "undefined" && Companion && typeof Companion.renderStore === "function") {
     try { Companion.renderStore(); } catch (e) { /* store never breaks render */ }
   }
@@ -956,6 +957,71 @@ function renderStyles() {
         ${!isOwned && state.profile.coins < s.cost ? "disabled" : ""}>${s.name} · ${label}</button>`;
     }).join("");
   });
+}
+
+/* ---------- weekly boss (your focus coins are the damage) ---------- */
+const BOSS_MAX_HP = 750;
+const BOSS_NAMES = ["Procrastination Imp", "Distraction Goblin", "Scope Creep", "Bug Hydra", "Burnout Dragon", "Deadline Demon"];
+const BOSS_EMOJI = ["👺", "👹", "🌊", "🐲", "🐉", "😈"];
+
+function weekKey(date) {
+  const d = date ? new Date(date) : new Date();
+  const monday = new Date(d);
+  const day = (monday.getDay() + 6) % 7; // Monday = 0
+  monday.setDate(monday.getDate() - day);
+  monday.setHours(0, 0, 0, 0);
+  return localISO(monday);
+}
+
+function weekDamage(week) {
+  return state.sessions
+    .filter((s) => { try { return weekKey(new Date(s.endedAt)) === week; } catch (e) { return false; } })
+    .reduce((sum, s) => sum + (s.coins || 0), 0);
+}
+
+function bossFor(week) {
+  let n = 0;
+  for (let i = 0; i < week.length; i++) n = (n * 31 + week.charCodeAt(i)) % 997;
+  const i = n % BOSS_NAMES.length;
+  return { name: BOSS_NAMES[i], emoji: BOSS_EMOJI[i] };
+}
+
+function bossStatus() {
+  const week = weekKey();
+  const damage = weekDamage(week);
+  const boss = bossFor(week);
+  const defeated = damage >= BOSS_MAX_HP;
+  const claimed = state.bossLoot && state.bossLoot.week === week;
+  return { week, damage, boss, defeated, claimed, hp: Math.max(0, BOSS_MAX_HP - damage) };
+}
+
+function claimBoss() {
+  const st = bossStatus();
+  if (!st.defeated || st.claimed) return false;
+  const loot = Math.max(25, Math.round(BOSS_MAX_HP * 0.1));
+  state.bossLoot = { week: st.week };
+  addReward(loot, loot);
+  UI.toast(`☠️ ${st.boss.name} slain! Loot: +${loot} coins`, "gold");
+  Companion.react("level");
+  renderAll();
+  return true;
+}
+
+function renderBoss() {
+  const st = bossStatus();
+  const name = document.getElementById("bossName");
+  if (name) name.textContent = `${st.boss.emoji} ${st.boss.name}`;
+  const hp = document.getElementById("bossHp");
+  if (hp) hp.textContent = st.defeated ? "DEFEATED" : `${st.hp} HP left`;
+  const bar = document.getElementById("bossBar");
+  if (bar) bar.style.width = `${Math.min(100, Math.round((st.damage / BOSS_MAX_HP) * 100))}%`;
+  const sub = document.getElementById("bossWeek");
+  if (sub) sub.textContent = `This week you dealt ${st.damage} damage (goal ${BOSS_MAX_HP})`;
+  const btn = document.getElementById("bossClaimBtn");
+  if (btn) {
+    btn.disabled = !st.defeated || !!st.claimed;
+    btn.textContent = st.claimed ? "Loot claimed" : st.defeated ? "Claim loot" : "Not defeated yet";
+  }
 }
 
 /* ---------- events ---------- */
@@ -1383,6 +1449,9 @@ function bindEvents() {
     state.settings.meetAttach = e.target.checked;
     saveState();
   });
+
+  // weekly boss
+  document.getElementById("bossClaimBtn").addEventListener("click", claimBoss);
 
   // companion
   document.getElementById("companionSaveBtn").addEventListener("click", () => {
