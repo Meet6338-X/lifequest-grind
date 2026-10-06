@@ -419,6 +419,31 @@ function check(name, fn) {
     return "everyday files go to " + sub + "/";
   });
 
+  check("money shop buy + boost scales rewards", () => {
+    ["shopBalance", "shopList"].forEach((id) => {
+      if (!q(id)) throw new Error("missing #" + id);
+    });
+    const coinsBefore = ev("state.profile.coins");
+    if (!ev('buyShop("freeze")')) throw new Error("freeze buy failed");
+    if (ev("state.profile.freezes") !== 1) throw new Error("freeze not added");
+    if (!ev('buyShop("boost1")')) throw new Error("boost1 buy failed");
+    const r = ev('calculateReward({category:"Coding",difficulty:"None",source:"Manual",status:"Completed"}, 3600)');
+    if (!(r.coins > 75)) throw new Error("boost did not scale: " + r.coins);
+    ev("state.profile.boost = 1; saveState(); renderAll();");
+    return `spent ${coinsBefore - ev("state.profile.coins")} · boosted pays ${r.coins}`;
+  });
+
+  check("streak freeze forgives a missed day", () => {
+    ev(`
+      state.profile.streak = { current: 5, best: 5, lastDay: new Date(Date.now() - 3*86400000).toISOString().slice(0,10) };
+      state.profile.freezes = 1;
+      addReward(5, 5);
+    `);
+    if (ev("state.profile.streak.current") !== 5) throw new Error("streak reset despite freeze");
+    if (ev("state.profile.freezes") !== 0) throw new Error("freeze not consumed");
+    return "streak kept at 5 · freeze consumed";
+  });
+
   console.log("\n=== SMOKE RESULTS ===");
   results.forEach((r) => console.log(r));
   console.log("\n=== ERRORS (" + errors.length + ") ===");

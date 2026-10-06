@@ -797,6 +797,7 @@ function renderAll() {
   if (typeof Rooms !== "undefined" && Rooms && typeof Rooms.render === "function") {
     try { Rooms.render(); } catch (e) { /* rooms never break render */ }
   }
+  renderShop();
   if (typeof Market !== "undefined" && Market && typeof Market.render === "function") {
     try { Market.render(); } catch (e) { /* chart never breaks render */ }
   }
@@ -820,6 +821,58 @@ function updateBrief() {
   const cat = (document.getElementById("fCategory") || {}).value || "Other";
   const src = (document.getElementById("fSource") || {}).value || "Manual";
   brief.textContent = `${cat} · ${src}`;
+}
+
+/* ---------- money shop (spend coins, keep the grind honest) ---------- */
+const SHOP_ITEMS = [
+  { id: "boost1", name: "Coin Booster 1.5x", desc: "Permanent 1.5x on every coin payout", cost: 300 },
+  { id: "boost2", name: "Coin Booster 2x", desc: "Permanent 2x on every coin payout", cost: 800, requires: "boost1" },
+  { id: "freeze", name: "Streak Freeze", desc: "Forgives one missed day, keeps your streak", cost: 150, repeat: true }
+];
+
+function shopState(id) {
+  const boost = toNumber(state.profile.boost, 1) || 1;
+  if (id === "boost1") return boost >= 1.5 ? "owned" : "buy";
+  if (id === "boost2") return boost >= 2 ? "owned" : boost >= 1.5 ? "buy" : "locked";
+  return "buy"; // freeze is repeatable
+}
+
+function buyShop(id) {
+  const item = SHOP_ITEMS.find((x) => x.id === id);
+  if (!item) return false;
+  if (shopState(id) !== "buy") return false;
+  if (state.profile.coins < item.cost) {
+    UI.toast(`Need ${item.cost} coins for ${item.name}`);
+    return false;
+  }
+  state.profile.coins -= item.cost;
+  if (id === "boost1") state.profile.boost = 1.5;
+  if (id === "boost2") state.profile.boost = 2;
+  if (id === "freeze") state.profile.freezes = toNumber(state.profile.freezes, 0) + 1;
+  saveState();
+  renderAll();
+  UI.toast(`${item.name} unlocked!`, "gold");
+  Companion.react("level");
+  return true;
+}
+
+function renderShop() {
+  const bal = document.getElementById("shopBalance");
+  if (bal) bal.textContent = `${state.profile.coins} coins${state.profile.boost > 1 ? ` · ${state.profile.boost}x` : ""}${state.profile.freezes > 0 ? ` · 🧊${state.profile.freezes}` : ""}`;
+  const list = document.getElementById("shopList");
+  if (!list) return;
+  list.innerHTML = SHOP_ITEMS.map((item) => {
+    const st = shopState(item.id);
+    const label = st === "owned" ? "Owned" : st === "locked" ? "Needs 1.5x first" : `Buy · ${item.cost}`;
+    return `
+      <div class="task">
+        <div style="flex:1;min-width:0">
+          <div class="strong">${UI.esc(item.name)}</div>
+          <div class="session-meta">${UI.esc(item.desc)}</div>
+        </div>
+        <button class="btn btn-sm ${st === "buy" ? "btn-coral" : "btn-ghost"}" data-shop-buy="${item.id}" ${st === "buy" ? "" : "disabled"}>${label}</button>
+      </div>`;
+  }).join("");
 }
 
 /* ---------- events ---------- */
@@ -887,6 +940,8 @@ function bindEvents() {
 
   // delegated list actions
   document.body.addEventListener("click", (e) => {
+    const shop = e.target.closest("[data-shop-buy]");
+    if (shop) { buyShop(shop.dataset.shopBuy); return; }
     const tgl = e.target.closest("[data-task-toggle]");
     if (tgl) return toggleTask(tgl.dataset.taskToggle);
     const del = e.target.closest("[data-task-del]");
