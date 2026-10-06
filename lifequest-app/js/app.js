@@ -798,6 +798,8 @@ function renderAll() {
     try { Rooms.render(); } catch (e) { /* rooms never break render */ }
   }
   renderShop();
+  applyStyles();
+  renderStyles();
   if (typeof Companion !== "undefined" && Companion && typeof Companion.renderStore === "function") {
     try { Companion.renderStore(); } catch (e) { /* store never breaks render */ }
   }
@@ -878,6 +880,84 @@ function renderShop() {
   }).join("");
 }
 
+/* ---------- cosmetic unlocks (timer faces, chart themes, card styles) ---------- */
+const STYLE_CATALOG = {
+  faces: [
+    { key: "default", name: "Classic", cost: 0 },
+    { key: "neon", name: "Neon", cost: 100 },
+    { key: "chunky", name: "Chunky", cost: 100 }
+  ],
+  charts: [
+    { key: "default", name: "Market", cost: 0 },
+    { key: "mono", name: "Mono", cost: 100 },
+    { key: "sunset", name: "Sunset", cost: 100 }
+  ],
+  cards: [
+    { key: "rounded", name: "Rounded", cost: 0 },
+    { key: "sharp", name: "Sharp", cost: 100 },
+    { key: "soft", name: "Soft", cost: 100 }
+  ]
+};
+
+function ownedStyles(kind) {
+  if (!state.settings.styles) state.settings.styles = {};
+  if (!state.settings.styles[kind]) state.settings.styles[kind] = [STYLE_CATALOG[kind][0].key];
+  return state.settings.styles[kind];
+}
+
+function applyStyles() {
+  const s = state.settings;
+  document.body.dataset.timerface = s.timerFace || "default";
+  document.body.dataset.chart = s.chartTheme || "default";
+  document.body.dataset.cards = s.cardStyle || "rounded";
+}
+
+function buyStyle(kind, key) {
+  const item = (STYLE_CATALOG[kind] || []).find((x) => x.key === key);
+  if (!item) return false;
+  const owned = ownedStyles(kind);
+  if (owned.includes(key)) {
+    if (kind === "faces") state.settings.timerFace = key;
+    if (kind === "charts") state.settings.chartTheme = key;
+    if (kind === "cards") state.settings.cardStyle = key;
+    saveState();
+    applyStyles();
+    renderStyles();
+    return true;
+  }
+  if (state.profile.coins < item.cost) {
+    UI.toast(`Need ${item.cost} coins for ${item.name}`);
+    return false;
+  }
+  state.profile.coins -= item.cost;
+  owned.push(key);
+  if (kind === "faces") state.settings.timerFace = key;
+  if (kind === "charts") state.settings.chartTheme = key;
+  if (kind === "cards") state.settings.cardStyle = key;
+  saveState();
+  applyStyles();
+  renderAll();
+  UI.toast(`${item.name} style unlocked!`, "gold");
+  return true;
+}
+
+function renderStyles() {
+  const bal = document.getElementById("styleBalance");
+  if (bal) bal.textContent = `${state.profile.coins} coins`;
+  [["faces", "styleFaces", "timerFace"], ["charts", "styleCharts", "chartTheme"], ["cards", "styleCards", "cardStyle"]].forEach(([kind, boxId, setKey]) => {
+    const box = document.getElementById(boxId);
+    if (!box) return;
+    const owned = ownedStyles(kind);
+    const current = state.settings[setKey] || STYLE_CATALOG[kind][0].key;
+    box.innerHTML = STYLE_CATALOG[kind].map((s) => {
+      const isOwned = owned.includes(s.key);
+      const label = current === s.key ? "Active" : isOwned ? "Use" : `Buy · ${s.cost}`;
+      return `<button class="chip chip-btn ${current === s.key ? "active" : ""}" data-style-kind="${kind}" data-style-key="${s.key}"
+        ${!isOwned && state.profile.coins < s.cost ? "disabled" : ""}>${s.name} · ${label}</button>`;
+    }).join("");
+  });
+}
+
 /* ---------- events ---------- */
 function bindEvents() {
   // nav
@@ -947,6 +1027,8 @@ function bindEvents() {
     if (shop) { buyShop(shop.dataset.shopBuy); return; }
     const skin = e.target.closest("[data-skin]");
     if (skin) { Companion.buySkin(skin.dataset.skin); Companion.renderStore(); return; }
+    const style = e.target.closest("[data-style-kind]");
+    if (style) { buyStyle(style.dataset.styleKind, style.dataset.styleKey); return; }
     const tgl = e.target.closest("[data-task-toggle]");
     if (tgl) return toggleTask(tgl.dataset.taskToggle);
     const del = e.target.closest("[data-task-del]");

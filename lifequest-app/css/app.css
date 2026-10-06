@@ -779,6 +779,25 @@ body:not(.side-hidden) #edgeZone { display: none; }
 .friend-tag { display: inline-flex; align-items: center; gap: 4px; }
 .friend-tag .icon-btn { font-size: 11px; padding: 0 2px; }
 
+/* ---------- style shop looks ---------- */
+body[data-timerface="neon"] .timer {
+  letter-spacing: 0;
+  text-shadow: 0 0 18px var(--accent), 0 0 46px var(--accent);
+}
+body[data-timerface="chunky"] .timer {
+  letter-spacing: -0.02em;
+  -webkit-text-stroke: 2px var(--text);
+}
+body[data-chart="mono"] .candle-up { fill: var(--text); }
+body[data-chart="mono"] .candle-down { fill: transparent; }
+body[data-chart="mono"] .wick-up, body[data-chart="mono"] .wick-down { stroke: var(--text); }
+body[data-chart="sunset"] .candle-up { fill: #fb923c; }
+body[data-chart="sunset"] .candle-down { fill: #6b5be6; }
+body[data-chart="sunset"] .wick-up { stroke: #c2570b; }
+body[data-chart="sunset"] .wick-down { stroke: #4535a8; }
+body[data-cards="sharp"] .card { border-radius: 8px; }
+body[data-cards="soft"] .card { border-radius: 34px; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 1280px) {
   .dash-grid { grid-template-columns: 1fr 1fr; }
